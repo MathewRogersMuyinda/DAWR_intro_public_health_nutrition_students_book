@@ -1,0 +1,181 @@
+id,group,time,measurement
+1,Intervention,Baseline,3.002244
+1,Intervention,6 months,
+1,Intervention,1 year,3.0889
+2,Intervention,Baseline,3.815716
+2,Intervention,6 months,3.9889
+2,Intervention,1 year,4.2889
+3,Intervention,Baseline,3.041321
+3,Intervention,6 months,3.5569
+3,Intervention,1 year,3.1396
+4,Intervention,Baseline,3.7241
+4,Intervention,6 months,3.9084
+4,Intervention,1 year,4.2084
+5,Intervention,Baseline,2.9084
+5,Intervention,6 months,3.436804
+5,Intervention,1 year,3.0724
+6,Intervention,Baseline,3.831025
+6,Intervention,6 months,4.0225
+6,Intervention,1 year,4.3396
+7,Intervention,Baseline,2.933616
+7,Intervention,6 months,3.4561
+7,Intervention,1 year,3.0241
+8,Intervention,Baseline,3.876161
+8,Intervention,6 months,4.076161
+8,Intervention,1 year,4.297225
+9,Intervention,Baseline,3.044769
+9,Intervention,6 months,3.5744
+9,Intervention,1 year,3.1396
+10,Intervention,Baseline,3.8225
+10,Intervention,6 months,4.0396
+10,Intervention,1 year,4.287241
+11,Intervention,Baseline,2.948025
+11,Intervention,6 months,3.4889
+11,Intervention,1 year,
+12,Intervention,Baseline,3.886769
+12,Intervention,6 months,
+12,Intervention,1 year,4.3225
+13,Intervention,Baseline,2.985584
+13,Intervention,6 months,3.5396
+13,Intervention,1 year,3.1056
+14,Intervention,Baseline,3.9281
+14,Intervention,6 months,4.0921
+14,Intervention,1 year,4.41
+15,Intervention,Baseline,2.975684
+15,Intervention,6 months,3.475684
+15,Intervention,1 year,3.0889
+16,Intervention,Baseline,3.800569
+16,Intervention,6 months,4.048225
+16,Intervention,1 year,4.3921
+17,Intervention,Baseline,3.0921
+17,Intervention,6 months,3.61
+17,Intervention,1 year,3.1921
+18,Intervention,Baseline,3.862129
+18,Intervention,6 months,4.0225
+18,Intervention,1 year,
+19,Intervention,Baseline,3.020801
+19,Intervention,6 months,3.5569
+19,Intervention,1 year,3.0889
+20,Intervention,Baseline,3.713089
+20,Intervention,6 months,3.891361
+20,Intervention,1 year,4.2241
+21,Intervention,Baseline,2.975684
+21,Intervention,6 months,3.475684
+21,Intervention,1 year,3.0889
+22,Intervention,Baseline,3.800569
+22,Intervention,6 months,4.048225
+22,Intervention,1 year,4.3921
+23,Intervention,Baseline,3.048225
+23,Intervention,6 months,
+23,Intervention,1 year,3.1225
+24,Intervention,Baseline,3.782276
+24,Intervention,6 months,3.962596
+24,Intervention,1 year,
+25,Intervention,Baseline,3.062129
+25,Intervention,6 months,3.5225
+25,Intervention,1 year,3.1396
+26,Intervention,Baseline,3.820801
+26,Intervention,6 months,
+26,Intervention,1 year,4.2889
+27,Intervention,Baseline,3.041321
+27,Intervention,6 months,3.5569
+27,Intervention,1 year,3.1396
+28,Intervention,Baseline,3.831025
+28,Intervention,6 months,4.0225
+28,Intervention,1 year,4.3396
+29,Control,Baseline,2.982276
+29,Control,6 months,3.5396
+29,Control,1 year,
+30,Control,Baseline,3.8396
+30,Control,6 months,4.0921
+30,Control,1 year,4.41
+31,Control,Baseline,3.0396
+31,Control,6 months,3.6649
+31,Control,1 year,3.21
+32,Control,Baseline,3.713089
+32,Control,6 months,4.0396
+32,Control,1 year,4.3225
+33,Control,Baseline,3.002244
+33,Control,6 months,
+33,Control,1 year,3.1396
+34,Control,Baseline,3.815716
+34,Control,6 months,3.9889
+34,Control,1 year,4.3396
+35,Control,Baseline,2.9241
+35,Control,6 months,3.5225
+35,Control,1 year,3.0889
+36,Control,Baseline,3.769124
+36,Control,6 months,4.0396
+36,Control,1 year,4.3225
+37,Control,Baseline,2.933616
+37,Control,6 months,
+37,Control,1 year,3.0241
+38,Control,Baseline,3.91
+38,Control,6 months,4.2025
+38,Control,1 year,4.5025
+39,Control,Baseline,2.949636
+39,Control,6 months,
+39,Control,1 year,3.0724
+40,Control,Baseline,3.7241
+40,Control,6 months,3.9724
+40,Control,1 year,4.2561
+41,Control,Baseline,3.0056
+41,Control,6 months,3.5569
+41,Control,1 year,3.1396
+42,Control,Baseline,3.825904
+42,Control,6 months,4.0569
+42,Control,1 year,4.3744
+43,Control,Baseline,3.019104
+43,Control,6 months,3.5744
+43,Control,1 year,3.1744
+44,Control,Baseline,3.8396
+44,Control,6 months,4.0744
+44,Control,1 year,4.3921
+45,Control,Baseline,3.099236
+45,Control,6 months,3.8404
+45,Control,1 year,3.3801
+46,Control,Baseline,3.746416
+46,Control,6 months,4.1464
+46,Control,1 year,4.41
+47,Control,Baseline,2.9724
+47,Control,6 months,3.5396
+47,Control,1 year,3.1056
+48,Control,Baseline,3.760969
+48,Control,6 months,3.9724
+48,Control,1 year,4.3396
+49,Control,Baseline,3.1649
+49,Control,6 months,3.925721
+49,Control,1 year,3.3216
+50,Control,Baseline,3.728849
+50,Control,6 months,4.0921
+50,Control,1 year,
+51,Control,Baseline,2.9724
+51,Control,6 months,3.5056
+51,Control,1 year,3.1569
+52,Control,Baseline,4.0025
+52,Control,6 months,4.3816
+52,Control,1 year,4.6404
+53,Control,Baseline,2.952864
+53,Control,6 months,3.4724
+53,Control,1 year,3.0889
+54,Control,Baseline,3.7889
+54,Control,6 months,4.0225
+54,Control,1 year,
+55,Control,Baseline,2.9889
+55,Control,6 months,3.689249
+55,Control,1 year,3.2464
+56,Control,Baseline,3.719369
+56,Control,6 months,3.94
+56,Control,1 year,4.2724
+57,Control,Baseline,2.900625
+57,Control,6 months,3.689249
+57,Control,1 year,3.2464
+58,Control,Baseline,3.91
+58,Control,6 months,4.2025
+58,Control,1 year,4.5025
+59,Control,Baseline,3.0225
+59,Control,6 months,3.61
+59,Control,1 year,3.1921
+60,Control,Baseline,3.7241
+60,Control,6 months,4.0225
+60,Control,1 year,4.3396

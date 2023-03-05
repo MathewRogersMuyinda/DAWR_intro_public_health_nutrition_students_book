@@ -1,0 +1,3 @@
+# Introduction to R
+
+This section will contain a simple introduction to `R` programming.

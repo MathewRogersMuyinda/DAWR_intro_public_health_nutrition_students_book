@@ -1,0 +1,18 @@
+# Preface {.unnumbered}
+
+The ability to analyze and interpret data is a fundamental skill for public health professionals, and is a crucial aspect of evidence-based public health. Unfortunately, the increasing volume and complexity of public health data has not been met with a commensurate increase in professionals with the necessary data skills to make sense of it. Part of the problem is that traditional curricula in Ugandan universities give short shrift, if any at all, to teaching and offering opportunities to practice data analysis. Where some coverage is made, it is in the form of short practical/lab sessions for epidemiology or biostatistics courses often using `SPSS` and `Stata` statistical software. Although these programs have programming capabilities, instructors often conveniently teach the easy-to-learn but less flexible GUI point-and-click approach. More so, these programs are prohibitively expensive meaning that an overwhelming majority of students are limited to practice only when they have access to university computers (on which much older feature-limited versions of the programs are installed, if any). Consequently, students graduate with very little to no skill in conceptualising and performing actual data analysis. This incompetency is often first witnessed while working on their dissertation analysis for which they often source for external assistance. If they perform the analysis themselves, a lot is left to be desired. 
+
+
+In response to the aforementioned skills gap, I developed a stand-alone data analysis course which I currently teach to undergraduate public health and nutrition students at [Victoria University](https://vu.ac.ug/). An extended version of the course is offered to master of public health students. Drawn from my course teaching materials, this book aims at introducing students to `R` programming for data management, manipulation, visualization and analysis. Why `R`? `R` is absolutely free to install and use making it an accessible option for students/professionals who cannot afford expensive alternative. `R` is widely used in data analysis and data science, including public health research as well as other domains like econometrics and finance. Learning `R` will equip you with programming skills (transferable to other programming languages) that have been considered as one of the [10 most important skills of the future](https://www.weforum.org/agenda/2020/10/top-10-work-skills-of-tomorrow-how-long-it-takes-to-learn-them/). `R` is versatile; through a very large library of packages, it can perform a wide range of data analysis/science tasks including data manipulation, visualization and modelling. `R` programming allows easy documentation of the data analysis process---reproducible research---thereby promoting transparency and simplifying scientific collaboration. Lastly, `R` has a large active user community which extends its functionality in addition to providing a wealth of free resources (online tutorials, discussion forums, blogs, etc) to learn `R`.
+
+
+I hope that this book will inspire and challenge you to derive insights from your data using `R`. For any suggestions, inquiries or any other issues, please reach me at `mathewrogersmuyinda@gmail.com`.
+
+
+<div align="right">Mathew Rogers Muyinda</div>
+
+
+
+
+
+

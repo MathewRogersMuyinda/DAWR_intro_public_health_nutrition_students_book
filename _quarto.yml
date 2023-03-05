@@ -1,0 +1,62 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Data Analysis With R"
+  subtitle: "A Step-by-Step Introduction for Public Health and Nutrition Students"
+  reader-mode: true
+  
+  page-footer: 
+    left: |
+      Data Analysis With R
+    right: |
+      Mathew Rogers Muyinda, BSHN (Hons), MPH
+  repo-url: https://github.com/MathewRogersMuyinda/DAWR_intro_public_health_nutrition_students_book.git
+  author: 
+    - name: Mathew Rogers Muyinda, BSHN, MPH
+      email: mathewrogersmuyinda@gmail.com
+
+  date: last-modified
+  chapters:
+    - index.qmd
+    - 01_intro.qmd
+    - 02_importing_data.qmd
+    - 03_data_wrangling.qmd
+    - 04_exploratory_data_analysis.qmd
+    - 05_statistical_inference_I.qmd
+    - 06_statistical_inference_II.qmd
+    - 07_regression_I.qmd
+    - 08_regression_II.qmd
+    - 09_nutrition_applications_R.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cerulean
+    code-copy: true
+    #title-block-banner: true
+    smooth-scroll: false
+    number-depth: 5
+    code-fold: false
+    code-overflow: scroll
+    code-line-numbers: false
+    code-block-border-left: true
+    code-block-bg: "#F2F3F4"
+    
+  pdf:
+    documentclass: scrreprt
+
+execute: 
+  eval: true
+  echo: true
+  warning: false
+df-print: paged
+link-external-icon: true
+link-external-newwindow: true
+code-link: true
+editor: visual
+

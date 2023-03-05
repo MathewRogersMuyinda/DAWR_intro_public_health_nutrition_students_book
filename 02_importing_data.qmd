@@ -1,0 +1,78 @@
+---
+title: "Importing and Exporting Data"
+author: "Mathew Rogers Muyinda"
+---
+
+## Importing data into `R`
+
+The first step in data analysis is importing the data you're going to work with into `R`. There are several [packages](https://cran.r-project.org/doc/manuals/r-devel/R-data.html) for reading data into `R` but I find the [`rio`](https://cran.r-project.org/web/packages/rio/index.html) package to be the most convenient. `rio` provides a single function, `import()`, that automatically detects a file format based on its extension, applies the appropriate data import function and returns `data.frame`.
+
+
+```{r}
+#| label: load-session-packages
+
+# load packages
+librarian::shelf(rio, here, tidyverse)
+```
+
+
+The [`librarian`](https://cran.r-project.org/web/packages/librarian/index.html) package provides a convenient way of installing, updating and loading packages. In the code above, `librarian::shelf()` loads the `rio`, `here` and `tidyverse` packages at once without typing three `library()` or `require()`calls. If a specified package is not already installed on your computer, `librarian` will check for and install it from either `CRAN`, `Github` or `Bioconductor`. If you prefer to load specific packages at the start of every `R` session, you can do so using `librarian::lib_startup()`.
+
+
+```{r}
+#| label: load-packages-every-session
+#| eval: false
+
+librarian::lib_startup(rio, here, tidyverse, global = TRUE)
+```
+
+
+For the most part of the book, we will work with data from the [`Behavioural Risk Factor Surveillance System (BRFSS)`](https://www.cdc.gov/brfss/index.html) 2021, a survey that collects comprehensive data on health behaviors and lifestyle factors that contribute to morbidity and mortality in the United States, as well as data on chronic conditions such as heart disease, cancer, diabetes, and asthma. Let's import this data into `R`:
+
+
+```{r}
+#| label: import-data
+#| eval: false
+
+brfss <- import(here("data", "BRFSS2021.XPT"))
+```
+
+
+The `here()` function used above comes from the homonymous [`here`](https://here.r-lib.org/)
+package. It helps you to find files within your working directory using relative instead of absolute file paths that are specific to a particular computer or user. Using relative file paths enhances portability of your code such that anyone with access to your project folder (i.e., working directory) can the code without running into problems. The code above tells `R` to import a file saved as `BRFSS2021.XPT` in the `data` sub-folder within the current working directory.
+
+
+## Exporting data with `rio`
+
+After manipulating data in `R`, you can export it in several formats depending on your needs; whether for further processing in another program or to satisfy data format requirements of your collaborators. Just like `import()`, the `export()` function from `rio` makes it easy to export data from `R`. You can find a list of all supported formats [here](https://cran.r-project.org/web/packages/rio/vignettes/rio.html). To export the dataset we loaded earlier as an `SPSS`'s `.sav` file named `brfss_spss` in the `data` sub-folder of our working directory:
+
+
+```{r}
+#| label: export-brfss-dataset-XPT
+#| eval: false
+
+# export dataset in SPSS format
+export(brfss,  file = here("data", "brfss_spss.sav"))
+```
+
+
+If you work exclusively in `R`, you may consider preserving all
+modifications made to your data by saving the modified dataset in an `R`
+data format, `.rds` and later importing it for subsequent
+processing/analysis. This saves time and computation resources by
+precluding the need to re-run all your code all over again.
+
+```{r}
+#| label: export-brfss-rds
+#| eval: false
+
+export(brfss, file = here("data", "brfss_modified.rds"))
+```
+
+## Summary
+
+In conclusion, this chapter has highlighted how to easily import and
+export data in various formats using the `import()` and `export()`
+functions from the `rio` package. We have also seen the advantage of
+saving data in `.rds` format as a way of preserving any changes made to
+data for later use in `R`.
