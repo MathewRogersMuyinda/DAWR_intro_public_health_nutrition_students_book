@@ -1,0 +1,1802 @@
+---
+title: "Exploratory Data Analysis"
+author: "Mathew Rogers Muyinda"
+---
+
+## Introduction
+
+### What is exploratory data analysis?
+
+Exploratory data analysis (EDA) is the process of examining dataset to
+reveal its key features and latent relationships between variables
+through numerical and visual techniques. By the end of this chapter, you
+should be able to perform EDA techniques to your own data analysis
+projects in `R`. (You can read more about EDA
+[here](https://www.ibm.com/topics/exploratory-data-analysis)).
+
+### Why perform exploratory data analysis?
+
+Exploratory data analysis is an essential step in any data analysis
+project allowing you to identify common issues (like missing values,
+outliers), reveal patterns and/or relationships between variables, check
+assumptions for statistical tests, suggest strategies for modelling, and
+communicate data analysis results.
+
+### Principles of exploratory data analysis
+
+General principles of EDA (extracted from
+[here](https://jhudatascience.org/tidyversecourse/wrangle-data.html#exploratory-data-analysis))
+include:
+
+-   Look for missing values
+
+-   Look for outlier values
+
+-   Use plots to explore relationships
+
+-   Use tables to explore relationships
+
+-   If necessary, transform variables
+
+Let's load packages for use in this chapter and import the cleaned
+version of the `BRFSS` dataset from the previous chapter.
+
+```{r}
+#| label: preliminaries
+
+# load packages to be used in this chapter
+librarian::shelf(
+  rio, 
+  here, 
+  tidyverse,
+  janitor,
+  expss,
+  skimr,
+  sjmisc,
+  rstatix,
+  gtsummary,
+  flextable,
+  officer,
+  ggpubr,
+  ggformula,
+  ggblanket,
+  ggeasy,
+  ggpubfigs,
+  hrbrthemes,
+  sdamr,
+  sjPlot,
+  ggridges,
+  ggExtra,
+  visdat,
+  naniar
+)
+
+# import wrangled brfss dataset
+brfss <- import(here("data", "brfss_2021_clean.rds"))
+```
+
+## Numerical data exploration
+
+You can use numerical techniques, or summary statistics, to explore a
+dataset. Common summary statistics used include raw counts, mean,
+standard deviation, variance, median, and interquartile range.
+
+The base `R` `summary()` function provides summary statistics for all
+numerical variables and counts for categorical/factor variables in a
+dataset.
+
+```{r}
+#| label: summary-brfss-dataset
+
+# get summary of all variables in brfss
+brfss %>% 
+  summary()
+```
+
+From the output above, we see summary statistics for numerical variables
+and counts for factor level. We also get an idea of the extent of
+missing values for each variable.
+
+`table()` returns counts for in each factor level of factor variables:
+
+```{r}
+# run table() for racegr3
+table(brfss$racegr3)
+```
+
+`janitor::tabyl()` is a versatile alternative to `table()`.
+
+```{r}
+# tabulation of racegr3 with tabyl()
+brfss %>% 
+  tabyl(racegr3)
+```
+
+`sjmisc` provides `Stata` style table summaries of variables along with
+their labels.
+
+```{r}
+# summarise variables using sjmisc
+brfss %>% 
+  select(sex, bmi_cat, smoker3, michd) %>% 
+  sjmisc::frq()
+```
+
+`skim()` from
+[`skimr`](https://cran.r-project.org/web/packages/skimr/vignettes/skimr.html)
+produces summary tables separately for numeric and factor variables in a
+dataset. Unfortunately, `skim()` does not support labels necessitating
+them to be dropped. `skim` output is a tibble from which we can extract
+individual summary statistics for further processing.
+
+```{r}
+# skim brfss
+brfss %>% 
+  drop_all_labels() %>% 
+  skim()
+```
+
+For only numeric variable summary statistics:
+
+```{r}
+# get summary statistics for numerical variables
+brfss %>% 
+  drop_all_labels() %>% 
+  skim() %>% 
+  yank("numeric")
+```
+
+Or for only categorical variables:
+
+```{r}
+# skim only factor variables
+brfss %>% 
+  drop_all_labels() %>% 
+  skim() %>% 
+  yank("factor")
+```
+
+`skim()` supports grouped summaries too. For example, summary of all
+numerical variables by `sex`:
+
+```{r}
+# summary of all numeric variables by sex
+brfss %>% 
+  drop_all_labels() %>% 
+  group_by(sex) %>% 
+  skim() %>% 
+  yank("numeric")
+```
+
+Another excellent alternative for summarising numerical variables is
+`get_summary_stats()` from
+[`rstatix`](https://cran.r-project.org/web/packages/rstatix/index.html).
+Like `skim()`, its output is a tibble.
+
+Let's get a summary of all numerical variables in the `BRFSS` dataset:
+
+```{r}
+# summary stats for all numeric variables
+brfss %>% 
+  get_summary_stats()
+```
+
+By specifying, the `type` parameter, we control what summary statistics
+are returned by `get_summary_stats()`. For common summary statistics:
+
+```{r}
+## common summary statistics
+brfss %>% 
+  get_summary_stats(type = "common")
+```
+
+For robust summary statistics:
+
+```{r}
+## robust summary statistics
+brfss %>% 
+  get_summary_stats(type = "robust")
+```
+
+To display specific summary statistics, we use the `show` parameter:
+
+```{r}
+# to display specific summary stats
+brfss %>% 
+  get_summary_stats(show = c("mean", "sd", "median", "iqr"))
+```
+
+`get_summary_stats()` also allows grouped summary statistics:
+
+```{r}
+# summary stats by sex
+brfss %>% 
+  group_by(sex) %>% 
+  get_summary_stats()
+```
+
+As demonstrated in the data wrangling chapter, grouped summaries can be
+computed manually using `group_by()` and `summarise()`. But with
+functions, like `get_summary_stats()`, optimised for such operations, I
+wouldn't advise defaulting to this approach which is quite laborious and
+error prone.
+
+### Interactive data exploration
+
+For interactive exploration of data, the
+[`dataxray`](https://github.com/agstn/dataxray) and
+[`explore`](https://cran.r-project.org/web/packages/explore/vignettes/explore.html)
+packages come in handy.
+
+\newpage
+
+## Tabulating data
+
+Tables are an efficient means of organising and presenting data in a
+compact structured format enabling an analyst to easily communicate
+insights from large amounts of data. Several package options for
+producing tables in `R` are reviewed
+[here](https://rfortherestofus.com/2019/11/how-to-make-beautiful-tables-in-r/).
+Here, I'll rely on the versatile and easy-to-use
+[`gtsummary`](https://www.danieldsjoberg.com/gtsummary/) package.
+
+To produce a table summarising all variables in a dataset, just pass the
+data frame name to `tbl_summary()`:
+
+```{r}
+# tabulate entire brfss dataset
+brfss %>% 
+  tbl_summary()
+```
+
+`tbl_summary()` supports variable labels. If the dataset did not have
+labels, we'd get a table with exact variable names that may not be very
+informative to your audience:
+
+```{r}
+# tabulate brfss without labels
+brfss %>% 
+  drop_all_labels() %>% 
+  tbl_summary()
+```
+
+In case you are working with a dataset without variable labels, you can
+put informative labels within `tbl_summary()` using the `label`
+parameter:
+
+```{r}
+# manually assign labels to variables within tbl_summary()
+brfss %>% 
+  drop_all_labels() %>% 
+  tbl_summary(
+    label = list(
+      age80 = "Age (years)",
+      urbstat   = "Urban/Rural status",
+      racegr3   = "Race",
+      sex       = "Sex",
+      marital   = "Marital status",
+      educag    = "Highest education level completed",
+      bmi_cat   = "BMI classification",
+      overweight_obese = "Overweight/obesity indicator",
+      employ1   = "Employment status",
+      htm4      = "Height (meters)",
+      wtkg3     = "Weight (kg)",
+      bmi       = "Body mass index (kg/m^2)",
+      bmi_cat   = "BMI classification",
+      incomg1   = "Total annual income",
+      smoker3   = "Smoking status",
+      rfsmok3   = "Current smoking status",
+      drnkwk1   = "Number of alcoholic beverages consumed per week",
+      rfdrhv7   = "Heavy drinker",
+      frutsu1   = "Total fruits consumed per day",
+      vegesu1   = "Total vegetables consumed per day",
+      frtlt1a   = "Consume fruits one or more times per day",
+      veglt1a   = "Consume vegetables one or more times per day",
+      totinda   = "Leisure time physical activity during past 30 days",
+      genhlth   = "General health rating",
+      rfhype6   = "Hypertension diagnosis",
+      bpmeds    = "Currently taking medicine for high blood pressure",
+      rfchol3   = "High cholesterol diagnosis",
+      cholmed3  = "Currently taking medicine for cholesterol",
+      michd     = "Ever had coronary heart disease or myocardial infarction?",
+      cvdstrk3  = "Ever diagnosed with a stroke?",
+      addepev3  = "Ever told you have a depressive disorder?",
+      chckdny2  = "EVer told you have Kidney disease?",
+      diabete4  = "Ever told you had diabetes?"
+    )
+  )
+```
+
+By default, `tbl_summary()` includes all variables in a data frame in
+the table but you can specify which variables to include:
+
+```{r}
+# specify variables for inclusion
+brfss %>% 
+  tbl_summary(
+    include = c(sex, smoker3, michd)
+  )
+```
+
+To display what the numbers (or, specifically, statistics) stand for,
+add `add_stat_label()`:
+
+```{r}
+# indicate what values represent
+brfss %>% 
+  tbl_summary(
+    include = c(age80, sex, smoker3, michd)
+  ) %>% 
+  add_stat_label()
+```
+
+You can stratify a table by a dependent variable using the `by`
+parameter:
+
+```{r}
+# stratifying by a dependent variable
+brfss %>% 
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, bmi_cat, rfsmok3)
+  ) %>% 
+  add_stat_label()
+```
+
+Any missing values in the stratifying variable are omitted by default.
+To include them as the third category, use
+`forcats::factor_explicit_na()` before running `tbl_summary()`:
+
+```{r}
+# include NA category in stratifying variable
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, bmi_cat, rfsmok3)
+  ) %>% 
+  add_stat_label()
+```
+
+You can add a header spanning the stratifying variable levels to make it
+more informative using `modify_spanning_header()`:
+
+```{r}
+# add spanning header
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, bmi_cat, rfsmok3)
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  )
+```
+
+To change the label of the variables column, use `modify_header()`:
+
+```{r}
+# change variable column label
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, bmi_cat, rfsmok3)
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**")
+```
+
+You can specify whether or not missing values should be included by
+setting the `missing` parameter within `tbl_summary()`. (It is good
+practice to always show missing values in your summary tables.)
+
+```{r}
+# alter missing values display behaviour
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, bmi_cat, rfsmok3),
+     #missing = "ifany", # default; shows missing values only when they exist
+    #missing = "no", # stops any missing values from being displayed
+    missing = "always" # includes NA row for all variables
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**")
+```
+
+By passing an argument to `missing_text()` within `tbl_summary()`, you
+can change how missing values are labelled within the table:
+
+```{r}
+# change naming of missing values
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, bmi_cat, rfsmok3),
+    missing_text = "NA"
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**")
+```
+
+By default, only "Yes" responses for dichotomous "Yes/No" variables are
+displayed. To show both levels, use the
+`type = all_dichotomous() ~ "categorical"` parameter within
+`tbl_summary()`:
+
+```{r}
+# show both Yes and No responses
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, rfsmok3, diabete4, addepev3),
+    missing_text = "(Missing)",
+    type = all_dichotomous() ~ "categorical"
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**")
+```
+
+If you choose to omit missing values, you can add a column to indicate
+the number of non-missing observations for each variable using `add_n()`
+
+```{r}
+# add N column
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    include = c(age80, sex, rfsmok3, diabete4, addepev3),
+    missing = "no",
+    type = all_dichotomous() ~ "categorical"
+  ) %>% 
+  add_stat_label() %>% 
+  modify_header(label ~ "**Variable**") %>% 
+  add_n()
+```
+
+You can add a column with overall summary statistics to stratified table
+using `add_overall()`:
+
+```{r}
+# add overall column
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, rfsmok3, diabete4, addepev3),
+    missing = "no",
+    type = all_dichotomous() ~ "categorical"
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**") %>% 
+  add_overall()
+```
+
+`gtsummary()` has much more to offer when it comes to producing tables.
+Visit the official package
+[page](https://www.danieldsjoberg.com/gtsummary/). For the visual
+learners, Daniel D. Sjoberg, the package author, has an excellent video
+[tutorial](https://youtu.be/tANo9E1SYJE) offers a comprehensive tour of
+the package functionality.
+
+You can print tables produced by `gtsummary` in various formats using
+`as_gt()`, `as_hux_table()` and `as_flex_table()` functions. The
+`huxtable` and `flextable` engines print tables well in `html`, `pdf`
+and `word` formats.
+
+A table printed with `huxtable` would appear as below:
+
+```{r}
+# print table with huxtable engine
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, overweight_obese, diabete4),
+    missing = "no",
+    type = all_dichotomous() ~ "categorical"
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**") %>% 
+  add_overall() %>% 
+  as_hux_table()
+```
+
+The same table printed with `flextable` would appear like this:
+
+```{r}
+# print table with flextable engine
+brfss %>% 
+  mutate(michd = fct_explicit_na(michd)) %>%
+  tbl_summary(
+    by = michd,
+    include = c(age80, sex, overweight_obese, diabete4),
+    missing = "no",
+    type = all_dichotomous() ~ "categorical"
+  ) %>% 
+  add_stat_label() %>% 
+  modify_spanning_header(
+    c("stat_1", "stat_2", "stat_3") ~ "**Ever had a CHD or MI diagnosis**"
+  ) %>% 
+  modify_header(label ~ "**Variable**") %>% 
+  add_overall() %>% 
+  as_flex_table()
+```
+
+You can save (or export) `gtsummary` tables in several formats. Let's
+save a summary table of all variables in `brfss` as a word document.
+
+```{r eval="FALSE"}
+# save table in word (.docx) format
+brfss %>% 
+  tbl_summary(
+    by = michd,
+    missing_text = "(Missing)",
+    type = all_dichotomous() ~ "categorical"
+  ) %>% 
+  add_overall() %>%  
+  add_stat_label() %>% 
+  modify_header(label ~ "**Variable**") %>% 
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Ever had a CHD or MI diagnosis**") %>% 
+  as_flex_table() %>% 
+  flextable::save_as_docx(
+    path = here("tables", "full_summary_table_1.docx")) # to save as a word (.docx) file
+```
+
+\newpage
+
+## Data visualization
+
+Summary statistics have a drawback of reducing too much information in
+data to just a few numerical values. Visualising data using appropriate
+graphics or plots---data visualisation---allows one to get more
+comprehensive insights about their data (i.e., exploratory) and also
+communicate findings clearly (i.e., explanatory). Generally, your
+visualisations should convey a clear message by ensuring they are
+appropriate for the data type, illegible text and clearly labelled
+accurate axes.
+
+In this section, we are going to learn how to produce high-quality data
+visualisations using `ggplot2`, a core `tidyverse` package.
+
+### `ggplot2`
+
+#### Grammar of graphics
+
+`ggplot2` was developed to facilitate production of graphics using a
+*grammar of graphics* approach (The `gg` in `ggplot2` stands for grammar
+of graphics). In this framework, complex graphics are built by piecing
+together graphic elements incrementally, akin to how sentences are
+constructed from words, phrases and clauses.
+
+The fundamental elements in the grammar of graphics are the **data**
+containing the variables to be plotted; **geometry** (or **geoms**) that define how data will be represented on a plot (for example, as points on a scatterplot, as lines on a line graph, as bars on a barchart etc); and, **aesthetics** that you actually see on the plot depending on the geometry (for example, position, size, shape and colour of a point representing an observation on a scatterplot). Other elements include **statistics** that represent data summaries (e.g., bins on a histogram), **coordinates** that define how geometries (or geoms) are mapped onto the plot plane, **facets** that break data into subgroups and **themes** that control the overall look of a plot (for example, background colours, gridlines, fonts, legend position etc).
+
+#### `ggplot2` syntax
+
+We'll demonstrate the basic `ggplot2` syntax by building a scatterplot
+of height (`htm4`) and weight (`wtkg3`).
+
+`ggplot2` syntax begins with the `ggplot()` function that takes as its
+first argument, the name of the data you're working with. This creates a
+gray canvas on which all other elements are added sequentially using a
+plus (`+`).
+
+```{r}
+# initialise ggplot2 object
+ggplot(data = brfss)
+```
+
+The second, `mapping = aes()`, argument defines how variables we wish to
+plot will be linked with the aesthetics we will see on the plot. In
+`aes()`, we specify what variables will go on the *x* and *y* axis:
+
+```{r}
+# adds aesthetic mapping to ggplot2 canvas
+ggplot(data = brfss, mapping = aes(x = htm4, y = wtkg3))
+```
+
+Let's tell `ggplot2` the type of plot we want by adding a layer of
+geometric object or **geom**. All geometries are prefixed by `geom_`;
+for a scatterplot, we use `geom_point()`:
+
+```{r}
+# add a geometric object layer
+ggplot(data = brfss, mapping = aes(x = htm4, y = wtkg3)) +
+  geom_point()
+```
+
+
+Now that we have seen the basic `ggplot2` syntax, in the following
+sections, we'll see how to produce plots depending on the type and
+number of variables.
+
+#### `ggplot2` wrappers
+
+`ggplot2` excels at data visualisation but its syntax is somewhat
+verbose (especially for beginners) and has defaults that require lots of
+customization to ready them for publishing. Several wrapper packages
+exist to simplify production and modification of `ggplot2` graphics.
+Notable packages include
+[`ggblanket`](https://davidhodge931.github.io/ggblanket/articles/ggblanket.html),
+[`ggformula`](https://cran.r-project.org/web/packages/ggformula/vignettes/ggformula.html),
+[`ggpubr`](https://cran.r-project.org/web/packages/ggpubr/index.html),
+and [`ggeasy`](https://jonocarroll.github.io/ggeasy/).
+
+### One quantitative variable
+
+Plot options for a single quantitative/numerical variable include
+histogram (count or density), kernel density plot, dot/strip chart,
+box-and-whisker plot (or boxplot), violin plot and, raincloud plot.
+These plots provide a visual idea of a variable's distribution or range
+of values that it takes.
+
+#### Count histogram
+
+A histogram displays counts of values lying in specified intervals
+(represented by bins) as a height. Let's plot a histogram for BMI.
+
+```{r}
+# produce count histogram for BMI distribution
+hist_1 <- brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_histogram()
+
+hist_1
+```
+
+
+We can modify the plot above by, for instance:
+
+
+1. Adding a title, subtitle, and axis labels
+
+
+```{r}
+# add plot title
+hist_1 +
+  ggtitle("Count histogram for distribution of BMI") + # adds title
+  xlab("BMI") +                                        # adds x-axis label
+  ylab("Count")                                        # adds y-axis label
+```
+
+
+We can alternatively use the `labs()` function to specify the title and axes labels in one call:
+
+
+```{r}
+# specifying labels using labs()
+hist_1 +
+  labs(
+    title = "Distribution of body mass index (BMI)",
+    subtitle = "Count histogram",
+    caption = "Produced by ggplot2",
+    x = "BMI",
+    y = "Count"
+  )
+```
+
+
+2.  Changing the fill and boundary colour of the bins/bars
+
+
+```{r}
+# change fill colour
+brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_histogram(
+    fill   = "dodgerblue3", # specify fill colour
+    colour = "black"        # specify colour of boundaries
+  )
+```
+
+
+3. Changing plot theme
+
+`ggplot2` comes with several themes that can be accessed with `?theme_`. Several packages, like [`ggthemes`](https://cran.r-project.org/web/packages/ggthemes/index.html), [`ggthemr`](https://github.com/Mikata-Project/ggthemr), [`ggpubfigs`](https://github.com/JLSteenwyk/ggpubfigs), and
+[`hrbrthemes`](https://github.com/hrbrmstr/hrbrthemes) among others, expand on theme options for `ggplot` plots. You can also manually modify all aspects of a plot within `theme()` (run `?theme` to see all possibilities). 
+
+
+```{r}
+# change plot theme ggplot
+hist_1 +
+  ggplot2::theme_bw()
+```
+
+
+You can ensure that all your plots have the same theme by using `theme_set()` at the start of your document. Let's set a global theme for all subsequent plots.
+
+
+```{r}
+# set global theme for all plots
+theme_set(hrbrthemes::theme_ipsum_rc(grid = "Y"))
+```
+
+
+A downside to histograms is that insights about a variable's
+distribution change with the number or width of bins chosen. Very wide
+bins mask nuances in distribution while very narrow bins are hard to
+read. The default number of bins is 30.
+
+::: panel-tabset
+
+```{r}
+# less bins
+brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_histogram(bins = 10) +
+  labs(
+    title = "Count histogram",
+    subtitle = "Bins = 10"
+    )
+```
+
+```{r}
+# more bins
+brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_histogram(bins = 90) +
+  labs(
+    title = "Count histogram",
+    subtitle = "Bins = 90"
+    )   
+```
+:::
+
+Alternatively, you can vary the bin width using `binwidth`:
+
+::: panel-tabset
+
+```{r}
+brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_histogram(binwidth = 2.5) +
+  labs(
+    title = "Count histogram",
+    subtitle = "Binwidth = 2.5"
+    )    
+```
+
+```{r}
+brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_histogram(binwidth = 8) +
+  labs(
+    title = "Count histogram",
+    subtitle = "Binwidth = 8"
+    )   
+```
+:::
+
+
+Remember our dataset has variable labels which we would like to display on our plots instead of writing axes labels every time. `ggplot2` does not have native support for labels but `expss` provides the `use_labels()` function to make this possible. Let's plot the histogram above with variable labels: 
+
+
+```{r}
+# plot labels using expss
+use_labels(brfss, {
+    ggplot(..data) +
+        geom_histogram(aes(x = bmi)) +
+    labs(title = "Count histgram", subtitle = "expss::use_labels()")
+})
+```
+
+
+The [`sjPlot`](https://cran.r-project.org/web/packages/sjPlot/index.html) package supports labels and provides an alternative to `ggplot2`. The resulting plot is a `ggplot` object  that can be customised using `ggplot2` syntax. Where options exist, the `sjPlot` alternative code will be provided.
+
+
+```{r}
+# histogram of BMI using sjPlot
+plot_frq(data = brfss, bmi, type = "histogram") +
+  labs(
+    title = "Count histogram",
+    subtitle = "BMI distribution",
+    caption = "Produced by `sjPlot`"
+  )
+```
+
+
+#### Density plot
+
+A density plot is a smoothed version of a count histogram with an area equal to one. In addition to being more aesthetically appealing than a histogram, you don't have to struggle finding the ideal number of bins or bin width.
+
+
+```{r}
+# density plot of BMI
+brfss %>% 
+  ggplot(aes(x = bmi)) +
+  geom_density() +
+  labs(title = "Kernel density plot", subtitle = "BMI distribution")
+```
+
+`sjPlot` produces a density plot superimposed on a histogram:
+
+```{r}
+# using sjPlot
+plot_frq(brfss, bmi, type = "density") +
+  labs(title = "Kernel density plot", subtitle = "BMI distribution")
+```
+
+#### Box and whisker plot
+
+A box-and-whisker plot (also known as a boxplot) displays the distribution of a variable using five summary statistics: the minimum, first quartile, median, third quartile, and maximum. 
+
+
+```{r}
+# boxplot for BMI
+bmi_bp <- brfss %>% 
+  ggplot(
+    aes(x = 0, # you have to specify a value for the code to work
+        y = bmi
+    )
+  ) +
+  geom_boxplot() +
+  labs(title = "Box-and-whisker plot", subtitle = "BMI distribution")
+
+bmi_bp
+```
+
+
+We can remove undesired elements from *x* axis within the `theme()` function, or simply using `easy_remove_x_axis()` from [`ggeasy`](https://jonocarroll.github.io/ggeasy/):
+
+
+```{r}
+# remove x axis elements
+bmi_bp +
+  easy_remove_x_axis(
+    what = c("ticks", "text", "title"),
+    teach = TRUE # gives full ggplot2 code to achieve the same result
+  )
+```
+
+
+Using `sjPlot`:
+
+
+```{r}
+# boxplot (sjPlot)
+plot_frq(brfss, bmi, type = "boxplot") +
+  labs(
+    title = "Box-and-whisker plot",
+    subtitle = "BMI distribution"
+  )
+```
+
+
+#### Violin plot
+
+A violin plot is like a mirrored density plot and is a more informative
+alternative to the boxplot. In this case we'll remove non-informative
+*y*-axis elements.
+
+```{r}
+# violin plot for BMI
+brfss %>% 
+  ggplot(aes(y = bmi, x = 1)) +
+  geom_violin() +
+  easy_remove_x_axis(what = c("ticks", "title", "text")) +
+  labs(
+    title = "Violin plot",
+    subtitle = "BMI distribution"
+  )
+```
+
+
+```{r}
+# sjPlot returns a boxplot imposed on a violin plot
+plot_frq(brfss, bmi, type = "violin")
+```
+
+#### Raincloud plot
+
+The [raincloud plot](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6480976/) combines a boxplot and density plot to provide information on the distribution of a variable while displaying the raw data. `ggplot2` does not currently have a raincloud geom, so we'll use `plot_raincloud()` from the
+[`sdamr`](https://cran.r-project.org/web/packages/sdamr/index.html)
+package although other
+[options](https://www.cedricscherer.com/2021/06/06/visualizing-distributions-with-raincloud-plots-and-how-to-create-them-with-ggplot2/)
+exist.
+
+```{r}
+# raincloud plot of BMI
+brfss %>% 
+  plot_raincloud(y = bmi)
+```
+
+
+
+### One categorical variable
+
+#### Bar chart
+
+A bar chart represents the distribution of a categorical variable, where each bar's height reflects the frequency of the corresponding category. Let's plot the distribution of BMI classification:
+
+
+```{r}
+# bar chart of BMI classification
+bmi_bar <- brfss %>% 
+  drop_na(bmi_cat) %>% # drop NA's from bmi_cat variable
+  ggplot(aes(x = bmi_cat)) +
+  geom_bar() +
+  labs(title = "Bar chart", subtitle = "Distribution of BMI classification")
+
+bmi_bar
+```
+
+
+You can flip the plot to avoid long category labels from overlapping. 
+
+
+```{r}
+# flip axes
+bmi_bar +
+  coord_flip() + # flip axes
+  theme_ipsum_rc(grid = "X") +
+  labs(title = "Bar chart", subtitle = "Distribution of BMI classification")
+```
+
+
+We can plot proportions instead of counts in two ways. We create a variable containing the proportions which is then mapped onto the *y*-axis:
+
+
+```{r}
+# create a new variable with proportion of observations in each BMI category
+prop_bmi_data <- brfss %>% 
+  drop_na(bmi_cat) %>% 
+  count(bmi_cat) %>% # counts observations in each category
+  mutate(proportion = round(n / sum(n), 3))
+
+prop_bmi_data
+```
+
+```{r}
+#| error: true
+
+# bar chart with proportions (return an error)
+prop_bmi_data %>% 
+  ggplot(aes(x = bmi_cat, y = proportion)) +
+  geom_bar()
+```
+
+
+To make the code above to work, we specify the `stat = "identity"` argument:
+
+
+```{r}
+# bar chart with proportions (working)
+prop_bmi_data %>% 
+  ggplot(aes(x = bmi_cat, y = proportion)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_ipsum_rc(grid = "X") +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification"
+  )
+```
+
+
+Or use `geom_col()` instead of `geom_bar()`:
+
+
+```{r}
+# bar chart with proportions (geom_col())
+prop_bmi_data %>% 
+  ggplot(aes(x = bmi_cat, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  theme_ipsum_rc(grid = "X") +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification"
+  )
+```
+
+
+The second alternative is to compute proportions *on the fly* within `aes()`:
+
+
+```{r}
+# bar chart with proportions (alternative 2)
+prop_plt <- brfss %>% 
+  drop_na(bmi_cat) %>% 
+  ggplot(aes(x = bmi_cat, y = after_stat(count)/sum(after_stat(count)))) +
+  geom_bar() +
+  coord_flip() +
+  theme_ipsum_rc(grid = "X") +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification",
+    y = "Count"
+  )
+
+prop_plt
+```
+
+
+We can tweak the *y* axis to extend its limits and display percents within `scale_y_continuous()`:
+
+
+```{r}
+# change y axis limits and number display
+prop_plt +
+  scale_y_continuous(
+    limits = c(0, 0.4),       # specify limits
+    labels = scales::percent  # changes number display to percent
+  ) +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification"
+  )
+```
+
+
+We can use `hrbrthemes::scale_y_percent()` to show percent labels on the *y*-axis:
+
+
+```{r}
+prop_plt +
+  hrbrthemes::scale_y_percent() +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification")
+```
+
+
+Using `geom_text()`, we can add labels to the bars to indicate the values they represent:
+
+
+```{r}
+# add labels to bars
+prop_bmi_data %>% 
+  drop_na(bmi_cat) %>% 
+  ggplot(aes(x = bmi_cat, y = proportion)) +
+  geom_bar(stat = "identity") +
+  scale_y_percent() +
+  geom_text(aes(label = proportion * 100), nudge_y = 0.02) +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification",
+    caption = "Produced by ggplot2"
+  )
+```
+
+
+`sjPlot` provides much shorter code to produce the same detailed plot:
+
+
+```{r}
+# labelled bar chart using sjPlot
+plot_frq(brfss, bmi_cat) +
+  #scale_y_comma() +
+  labs(
+    title = "Bar chart",
+    subtitle = "Distribution of BMI classification",
+    caption = "Produced by sjPlot"
+  )
+```
+
+
+#### Cleveland dot plot
+
+A Cleveland dot plot is a minimalist alternative to the bar chart that represents category frequencies with height. We can produce this in `ggplot2` using `geom_segment()` and `geom_point()`:
+
+
+```{r}
+# cleveland dot plot
+brfss %>% 
+  drop_na(bmi_cat) %>% 
+  count(bmi_cat) %>% 
+  ggplot(aes(x = bmi_cat, y = n)) +
+  geom_segment(aes(y = 0, yend = n, x = bmi_cat, xend = bmi_cat)) +
+  geom_point(size = 3.5) +
+  scale_y_comma() +
+  labs(
+    title = "Cleveland dot plot",
+    subtitle = "Distribution of BMI classification",
+    y = "Count"
+  )
+
+```
+
+
+`ClevelandDotPlot()` from the [`WVPlots`](https://cran.r-project.org/web/packages/WVPlots/index.html) package produces the same plot with much less code. By default, categories are sorted in descending order; you can change this order using `sort` parameter.
+
+
+```{r}
+# cleveland dot plot with WVPlots package
+brfss %>% 
+  drop_na(bmi_cat) %>% 
+  WVPlots::ClevelandDotPlot(
+    xvar = "bmi_cat",
+    title = "Cleveland dot plot"
+  ) +
+  scale_y_comma() +
+  labs(
+    subtitle = "Distribution of BMI classification",
+    caption = "Produced by: WVPlots"
+    )
+```
+
+
+### Two quantitative variables
+
+#### Scatterplot
+
+
+A scatterplot displays the relationship between two quantitative variables, for instance, height and weight.
+
+
+```{r}
+# scatterplot of height and weight
+brfss %>% 
+  ggplot(aes(x = htm4, y = wtkg3)) +
+  geom_point() +
+  geom_smooth(method = "lm") + # adds a line of best fit
+  labs(title = "Scatter plot", subtitle = "Weight vs. height")
+```
+
+
+When you have a large number of observations, overlap between points makes a scatter plot hard to read. To improve readability, we can adjust the transparency of the points by passing a number between 0 to 1 to the `alpha = ` parameter.
+
+```{r}
+brfss %>% 
+  ggplot(aes(x = htm4, y = wtkg3)) +
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  labs(title = "Scatter plot", subtitle = "alpha = 0.25")
+```
+
+
+When you have many overlapping points on a scatter plot, you can add random noise to each point's location to reduce the overlap using `geom_jitter()`:
+
+
+```{r}
+brfss %>% 
+  ggplot(aes(x = htm4, y = wtkg3)) +
+  geom_point(alpha = 0.5, position = "jitter") +
+  geom_smooth(method = "lm") +
+  labs(title = "Scatter plot", subtitle = "With jitter")
+```
+
+
+
+Using the [`ggExtra`](https://cran.r-project.org/web/packages/ggExtra/index.html) package, we can produce scatter plots with marginal distributions represented by density plots, histograms, and boxplots.
+
+
+::: {.panel-tabset}
+
+```{r}
+scat_plot <- brfss %>% 
+  ggplot(aes(x = htm4, y = wtkg3)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Scatter plot")
+
+# marginal density plot
+ggMarginal(scat_plot)
+```
+
+
+
+```{r}
+# marginal histogram
+ggMarginal(scat_plot, type = "histogram")
+```
+
+
+
+```{r}
+# marginal boxplot
+ggMarginal(scat_plot, type = "boxplot")
+```
+:::
+
+#### Hexbin plot
+
+An alternative to the scatter plot when you have too many observations is the hexbin plot. In this plot, the data are divided into bins whose colour is dependent on the number of observations each bin contains. A hexbin plot can be produced with `geom_hex()`:
+
+
+```{r}
+brfss %>% 
+  ggplot(aes(x = htm4, y = wtkg3)) +
+  geom_hex(aes(fill = after_stat(count))) +
+  scale_fill_continuous() +
+  labs(title = "Hex bin plot", subtitle = "Height vs. weight")
+```
+
+
+#### Line plot
+
+
+Line plots are visualise relationships between a quantitative variable and time. Using the [NCD Risk Factor Collaboration (NCD.RisC)](https://ncdrisc.org/data-downloads-adiposity.html) data, let's plot trends in national average age-standardised BMI for adult females in Uganda between 1975 and 2017:
+
+
+```{r}
+# import dataset
+bmi_trends <- import(here("data", "bmi_trends_national.csv"))
+
+# line plot female bmi in Uganda
+bmi_trends %>% 
+  filter(country == "Uganda" & sex == "Women") %>% 
+  ggplot(aes(x = year, y = mean_bmi)) +
+  geom_line() +
+  geom_point() + # adds points to the line
+  labs(
+    title = "Line plot",
+    subtitle = "Trends in adult female BMI in Uganda (1975-2017)",
+    caption = "Source: https://ncdrisc.org/data-downloads-adiposity.html"
+  )
+```
+
+
+### Quantitative and Categorical variables
+
+
+#### Box-and-whisker plot
+
+A boxplot can visualise the relationship between quantitative and categorical variables. Let's plot the distribution of BMI across race categories:
+
+
+```{r}
+# boxplot: bmi vs. racegr3
+brfss %>% 
+  drop_na(racegr3) %>% 
+  ggplot(aes(x = racegr3, y = bmi)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot",
+    subtitle = "BMI vs. race"
+  )
+```
+
+
+```{r}
+# using sjPlot
+plot_grpfrq(brfss$bmi, brfss$racegr3, type = "boxplot") +
+  labs(
+    title = "Boxplot",
+    subtitle = "BMI vs. race",
+    caption = "Produced by sjPlot"
+  )
+```
+
+
+#### Raincloud plots
+
+
+Raincloud plots offer a richer display of a quantitative variable's distribution across levels of a factor variable than boxplots. 
+
+
+```{r}
+brfss %>% 
+  drop_na(racegr3) %>% 
+  plot_raincloud(y = bmi, groups = racegr3, horizontal = TRUE) +
+  labs(
+    title = "Raincloud plot", 
+    subtitle = "BMI vs. race"
+    )
+```
+
+#### Bean plots
+
+
+Another alternative to the boxplot and raincloud plot is the bean plot. In a bean plot, individual observations are represented by small lines in a one-dimensional scatter plot alongside the density distribution of the quantitative variable and its average. We can produce a bean plot easily using the [`beanplot`](https://cran.r-project.org/web/packages/beanplot/index.html) package:
+
+
+```{r}
+beanplot::beanplot(bmi ~ racegr3, data = brfss, xlab = "Race", ylab = "BMI",
+                   main = "Bean plot: BMI vs. race")
+```
+
+
+#### Rigdeline plots
+
+
+Ridgeline plots are similar to raincloud plots but without a boxplot. These can be produced using [`ggridges`](https://cran.r-project.org/web/packages/ggridges/vignettes/introduction.html) package. 
+
+
+```{r}
+# ridgeline plot for BMI vs. race
+brfss %>% 
+  drop_na(racegr3) %>% 
+  ggplot(aes(y = racegr3, x = bmi, fill = racegr3)) +
+  geom_density_ridges() +
+  theme(legend.position = "none") + # removes the redundant legend
+  labs(
+    title = "Ridgeline plot",
+    subtitle = "BMI vs. race"
+  )
+```
+
+
+`ggplot2` provides decent colour defaults but you can choose colours using quoted English names (such as "blue", "red", "green") or their html hex codes (such as `"#000000"` for black, `"#0000FF"` for blue, `"#008000"` for green). You, however, should not spend much time choosing colours. You can instead make utility of the myriad colour palettes available. A relatively comprehensive list of colour palettes can be found [here](https://github.com/EmilHvitfeldt/r-color-palettes). In this book, we'll use the colour-blind friendly `vibrant_seven()` palette from the  [`ggpubfigs`](https://github.com/JLSteenwyk/ggpubfigs) package.
+
+
+To view colours (and their respective hex codes) in a palette, in this case `vibrant_seven`:
+
+
+```{r}
+# show colours and hex codes
+col_pal <- friendly_pal("vibrant_seven")
+scales::show_col(col_pal)
+```
+
+
+Let's produce the previous ridgeline plot with fill colours from the `vibrant_seven` palette:
+
+
+```{r}
+# ridgeline plot for BMI vs. race
+brfss %>% 
+  drop_na(racegr3) %>% 
+  ggplot(aes(y = racegr3, x = bmi, fill = racegr3)) +
+  geom_density_ridges() +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) + # specify colour palette
+  theme(legend.position = "none") + 
+  labs(
+    title = "Ridgeline plot",
+    subtitle = "BMI vs. race",
+    caption = "Vibrant seven colour palette"
+  )
+```
+
+#### Boxplot and violin plot
+
+
+Let's plot the distribution of BMI across race categories:
+
+
+```{r}
+# boxplot and violin plot: bmi vs. race
+brfss %>% 
+  drop_na(racegr3) %>% 
+  ggplot(aes(x = racegr3, y = bmi)) +
+  geom_violin() +
+  geom_boxplot(width = .2) + # set a small width to fit within violin
+  labs(
+    title = "Boxplot-violin plot",
+    subtitle = "BMI vs. race"
+  )
+```
+
+
+```{r}
+# using sjPlot
+plot_grpfrq(brfss$bmi, brfss$racegr3, type = "violin") +
+  labs(
+    title = "Boxplot-violin plot",
+    subtitle = "BMI vs. race",
+    caption = "Produced by sjPlot"
+  )
+```
+
+
+#### Mean plots
+
+
+A means plot displays the mean, along with the confidence interval, of a quantitative variable across factor levels. Let's visualise the mean BMI across race categories. First, we compute the mean and respective confidence intervals using `get_summary_stats()` (as we did in the last chapter):
+
+
+```{r}
+# calculate mean BMI and confidence interval.
+bmi_race_stats <- brfss %>% 
+  drop_na(racegr3) %>% 
+  select(racegr3, bmi) %>% 
+  group_by(racegr3) %>%
+  get_summary_stats(show = c("mean", "sd", "se"))
+
+bmi_race_stats
+```
+
+
+Now, let's plot the mean and its 95% confidence intervals:
+
+
+```{r}
+# produce mean plot
+bmi_race_stats %>% 
+  ggplot(aes(x = racegr3, y = mean)) +
+  geom_point() +
+  geom_errorbar(
+    aes(
+      ymin = mean - se, # lower confidence interval bound
+      ymax = mean + se # upper confidence interval bound
+    ),
+    width = 0.25 # width of horizontal lines at end of error bar
+  ) +
+  labs(
+    title = "Means plot",
+    subtitle = "Mean BMI by race"
+  )
+```
+
+
+### Categorical and categorical variables
+
+
+#### Grouped bar chart
+
+A grouped (also known as a clustered or side-by-side) bar chart displays the frequency of observations across categories. Let's visualise the relationship between overweight or obesity and history of myocardial infarction/coronary heart disease:
+
+
+```{r}
+# clustered bar chart
+brfss %>% 
+  drop_na(overweight_obese, michd) %>% 
+  ggplot(aes(x = overweight_obese, fill = michd)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  labs(
+    title = "Clustered bar chart",
+    subtitle = "History of myocardial infarction and coronary heart disease"
+  )
+```
+
+
+```{r}
+# using sjPlot
+plot_grpfrq(var.cnt = brfss$michd, var.grp = brfss$overweight_obese) +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  labs(
+    title = "Clustered bar chart",
+    subtitle = "History of myocardial infarction and coronary heart disease",
+    caption = "Produced by sjPlot"
+  )
+```
+
+
+#### Stacked bar chart
+
+
+Let's plot the relationship between history of myocardial infarction or coronary heart disease diagnosis and smoking status:
+
+
+```{r}
+brfss %>% 
+  drop_na(michd, smoker3) %>% 
+  ggplot(aes(x = smoker3, fill = michd)) +
+  geom_bar() +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  coord_flip() +
+  labs(
+    title = "Stacked bar chart",
+    subtitle = "Smoking status vs. History of MI/CHD"
+  )
+```
+
+
+#### Segmented bar chart
+
+A segmented bar chart is like a stacked bar chart but each bar area is equal to 1 making it easy to compare proportions (or ratios) of categories.  
+
+
+```{r}
+# segmented bar chart
+brfss %>% 
+  drop_na(michd, smoker3) %>% 
+  ggplot(aes(x = smoker3, fill = michd)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  coord_flip() +
+  labs(
+    title = "Segmented bar chart",
+    subtitle = "Smoking status vs. History of MI/CHD"
+  )
+```
+
+
+```{r}
+# using sjPlot
+plot_grpfrq(
+  var.cnt = brfss$smoker3,
+  var.grp = brfss$michd,
+  bar.pos = "stack",
+  show.n = FALSE,
+  show.prc = FALSE,
+  coord.flip = TRUE
+) +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  labs(
+    title = "Segmented bar chart",
+    subtitle = "Smoking status vs. History of MI/CHD",
+    caption = "Produced by sjPlot"
+  )
+```
+
+#### Tile plot
+
+A tile plot displays the frequency of observations in each combination of two categorical variable. Like hexbin plots, tiles are coloured based on the number of observations in each tile.
+
+
+```{r}
+brfss %>% 
+  drop_na(smoker3, racegr3) %>% 
+  count(smoker3, racegr3) %>% 
+  ggplot(aes(x = racegr3, y = smoker3)) +
+  geom_tile(aes(fill = n)) +
+  labs(title = "Tile plot", subtitle = "Smoking vs. race")
+```
+
+#### Age pyramid 
+
+Age pyramids are a type of bar chart that can visualise relationships between a binary categorical and a polytomous variable, in this case several age groups.
+
+
+```{r}
+# create age categories variable
+brfss <- brfss %>% 
+  mutate(
+    age_cat = factor(case_when(
+      # condition ~ value if true
+      between(age80, 18, 24) ~ "18 to 24",
+      between(age80, 25, 29) ~ "25 to 29",
+      between(age80, 30, 34) ~ "30 to 34",
+      between(age80, 35, 39) ~ "35 to 39",
+      between(age80, 40, 44) ~ "40 to 44",
+      between(age80, 45, 49) ~ "45 to 49",
+      between(age80, 50, 54) ~ "50 to 54",
+      between(age80, 55, 59) ~ "55 to 59",
+      between(age80, 60, 64) ~ "60 to 64",
+      between(age80, 65, 69) ~ "65 to 69",
+      between(age80, 70, 74) ~ "70 to 74",
+      between(age80, 75, 79) ~ "75 to 79",
+      age80 >= 80 ~ "80+"
+    ))
+    )
+```
+
+
+```{r}
+# let's plot an age pyramid
+brfss %>% 
+  group_by(sex) %>% 
+  count(age_cat) %>% 
+  mutate(pop = if_else(sex == "Male", n, -n)) %>% 
+  ggplot(aes(x = pop, y = age_cat, fill = sex)) +
+  geom_col() +
+  scale_x_continuous(labels = abs) + # show only absolute values
+  geom_vline(xintercept = 0) + # add vertical line at x = 0
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  labs(title = "Age pyramid plot", y = "Age categories", x = "Count")
+```
+
+
+We can produce age pyramids quickly using the [`apyramid`](https://cran.r-project.org/web/packages/apyramid/vignettes/intro.html) package.
+
+
+```{r}
+brfss %>% 
+  apyramid::age_pyramid(
+    age_group = "age_cat", split_by = "sex", proportional = TRUE
+  ) +
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  labs(title = "Age pyramid", x = "Age categories", y = "Proportion")
+```
+
+
+
+### Multivariate plots
+
+
+#### Colours
+
+
+We have encountered the use of colours to visualise relationships in categorical variables. Let's extend their utility in other plot types. 
+
+
+Let's plot the relationship between height and weight by gender:
+
+
+```{r}
+brfss %>% 
+  ggplot(aes(x = htm4, y = wtkg3, colour = sex)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_colour_manual(values = friendly_pal("vibrant_seven")) +
+  labs(
+    title = "Scatter plot",
+    subtitle = "Height vs. weight by gender",
+    colour = "Sex" # changes legend title
+  )
+```
+
+
+From the scatter plot above, males and females are represented by points and lines of best fit with different colours. We can see that in both sexes, weight increases with height but that the increase is more pronounced in males than females.
+
+
+Earlier, we produced a line plot showing trends in age-standardised female BMI in Uganda between 1975-2017. Let's use colours to plot BMI trends for more countries on the same plot.
+
+
+```{r}
+# line plot for multiple countries
+bmi_trends %>% 
+  filter(
+    country %in% c("Uganda", "Kenya", "Japan", "Brazil",
+                   "United States of America") & sex == "Women"
+  ) %>% 
+  ggplot(
+    aes(
+      x = year, 
+      y = mean_bmi,
+      colour = country # use a different colour for each country line
+    )
+  ) +
+  geom_line() +
+  scale_colour_manual(values = friendly_pal("vibrant_seven")) +
+  labs(
+    title = "Line plot",
+    subtitle = "Trends in adult female BMI (1975-2017)",
+    colour = "Country"
+    )
+```
+
+ 
+Let's plot the relationship between BMI and race by current smoking status using ridgeline plot:
+
+
+```{r}
+# ridgeline plot for BMI vs. race
+brfss %>% 
+  drop_na(racegr3, rfsmok3) %>% 
+  ggplot(aes(y = racegr3, x = bmi, fill = rfsmok3)) +
+  geom_density_ridges(alpha = 0.25) + # alpha sets transparency of fill
+  scale_fill_manual(values = friendly_pal("vibrant_seven"))
+```
+
+
+#### Faceting
+
+Faceting allows us to break up a relatively complex plot into multiple plots defined by levels of one or more categorical variables, facilitating the visualisation of multivariate relationships. `ggplot2` provides the `facet_wrap()` and `facet_grid()` functions for faceting.
+
+
+Let's plot the relationship between BMI and race in smokers and non-smokers separately using a faceted version of the rigdeline plot we produced in the previous section:
+
+
+```{r}
+brfss %>% 
+  drop_na(racegr3, rfsmok3) %>% 
+  ggplot(aes(y = racegr3, x = bmi)) +
+  geom_density_ridges() + 
+  facet_wrap(~rfsmok3) +
+  labs(
+    title = "Ridgeline plot",
+    subtitle = "BMI vs. race by smoking status"
+  )
+```
+
+
+Let's extend the plot above to include a fourth variable, `sex`:
+
+
+```{r}
+brfss %>% 
+  drop_na(racegr3, rfsmok3) %>% 
+  ggplot(aes(y = racegr3, x = bmi)) +
+  geom_density_ridges() + 
+  facet_wrap(~rfsmok3~sex) + # facet by smoking status and sex
+  labs(
+    title = "Ridgeline plot",
+    subtitle = "BMI vs. race by smoking status and sex"
+  )
+```
+
+
+In the plot above, we passed two variables to `facet_wrap()`. An alternative approach is to use `facet_grid()` that assigns factor levels to either rows or columns. Note that we have used `fill = interaction(rfsmok3, sex)` to tell `ggplot2` to use a different colour for each combination of the specified variables, i.e., `rfsmok3` and `sex`.
+
+
+```{r}
+brfss %>% 
+  drop_na(racegr3, rfsmok3) %>% 
+  ggplot(aes(y = racegr3, x = bmi, fill = interaction(rfsmok3, sex))) +
+  geom_density_ridges() + 
+  facet_grid(rows = vars(rfsmok3), cols = vars(sex)) +
+  #facet_grid(rfsmok3 ~ sex) + # also works
+  scale_fill_manual(values = friendly_pal("vibrant_seven")) +
+  labs(
+    title = "Ridgeline plot",
+    subtitle = "BMI vs. race by smoking status and sex"
+  ) +
+  theme(legend.position = "none")
+```
+
+
+By using both colour and facets, we can plot relationships between even more variables. You should, however, be judicious as overloading a plot with information can impede its interpretation. Let's plot the relationship between height and weight for males and females separately for each combination of smoking status and physical activity.
+
+
+```{r}
+brfss %>% 
+  drop_na(totinda, rfsmok3) %>% 
+  slice_sample(n = 1000) %>% 
+  ggplot(aes(x = htm4, y = wtkg3, colour = sex)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_colour_manual(values = friendly_pal("ito_seven")) +
+  facet_grid(rfsmok3 ~ totinda)
+```
+
+
+### Other plots
+
+#### Missing data
+
+The `visdat` package provides several plots to display missing values in a dataset. It uses `ggplot2` under the hood and the resulting plots can be modified using `ggplot2` code.
+
+
+For a feel of overall missingness in a data frame, `vis_dat()` is handy:
+
+
+```{r}
+brfss %>% 
+  vis_dat() +
+  labs(title = "Missing data plot")
+```
+
+
+For a visual of missing values and a summary of missingness in each variable, we use `vis_miss()`:
+
+
+```{r}
+brfss %>% 
+  vis_miss()
+```
+
+
+Alternatively, `naniar` provides a Cleveland plot-like alternative to visualising missingness in variables, usig `gg_miss_var()`:
+
+
+```{r}
+brfss %>% 
+  gg_miss_var() +
+  labs(title = "Frequency of missing values per variable")
+```
+
+
+If you prefer displaying proportion of missingness rather than raw counts, use the `show_pct =` parameter:
+
+
+```{r}
+brfss %>% 
+  gg_miss_var(show_pct = TRUE)
+```
+
+
+We can facet the plots too:
+
+
+```{r}
+brfss %>% 
+  drop_na(michd) %>% 
+  gg_miss_var(show_pct = TRUE, facet = michd) +
+  labs(title = "Proportion of missing values per variable",
+       subtitle = "Faceted by michd")
+```
+
+
+## Summary
+
+In this chapter, we have looked at how to explore your data using summary statistics and visual methods using `ggplot2`. By now, you should have a basic understanding of `ggplot2` and how to use it to produce common plots. We have covered a very small portion of what is possible with `ggplot2` but I believe it should be sufficient to give you a basis upon which to build your data visualisation skills with `ggplot2` further. You can expand your `ggplot2` skills using free online resources like Hadley Wickham's [`ggplot2: Elegant Graphics for Data Analysis`](https://ggplot2-book.org/), Thomas Mock's excellent 4-hr part [webinar](https://youtu.be/h29g21z0a68) and Winston Chang's [`R Graphics Cookbook`](https://r-graphics.org/).. If you find `ggplot2` syntax hard to grok, several packages can help you get started producing plots with minimal code: [`ggblanket`](https://davidhodge931.github.io/ggblanket/articles/ggblanket.html),  [`ggformula`](https://cran.r-project.org/web/packages/ggformula/vignettes/ggformula.html), [`ggpubr`](https://cran.r-project.org/web/packages/ggpubr/index.html), and
+[`ggeasy`](https://jonocarroll.github.io/ggeasy/) package which makes it easy to access and use not-so-easy-to-remember `ggplot2` functions.
+
