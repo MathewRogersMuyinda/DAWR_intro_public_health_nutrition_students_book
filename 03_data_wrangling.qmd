@@ -5,11 +5,20 @@ author: "Mathew Rogers Muyinda"
 
 ## Introduction
 
-Data wrangling or data munging is the process of refining, reorganizing, and converting raw data into a more useful and organized format that can be analyzed. This step is the most time-consuming phase during data analysis, as you will likely discover when working on your own projects. You can read more about data wrangling [here](https://online.hbs.edu/blog/post/data-wrangling).
+Data wrangling or data munging is the process of refining, reorganizing,
+and converting raw data into a more useful and organized format that can
+be analyzed. This step is the most time-consuming phase during data
+analysis, as you will likely discover when working on your own projects.
+You can read more about data wrangling
+[here](https://online.hbs.edu/blog/post/data-wrangling).
 
-
-In this chapter, we are going to rely heavily on the `BRFSS` dataset introduced in the preceding chapter to demonstrate common data wrangling tasks using the [`dplyr`](https://dplyr.tidyverse.org/index.html) package. For operations that the `BRFSS` data cannot facilitate, we will make utility of other datasets. `dplyr` is part of the popular and versatile `tidyverse` meta-package comprising of several individual packages that make data wrangling, visualization and modelling easy.
-
+In this chapter, we are going to rely heavily on the `BRFSS` dataset
+introduced in the preceding chapter to demonstrate common data wrangling
+tasks using the [`dplyr`](https://dplyr.tidyverse.org/index.html)
+package. For operations that the `BRFSS` data cannot facilitate, we will
+make utility of other datasets. `dplyr` is part of the popular and
+versatile `tidyverse` meta-package comprising of several individual
+packages that make data wrangling, visualization and modelling easy.
 
 Let's load the packages we'll use in this chapter:
 
@@ -27,9 +36,7 @@ librarian::shelf(
   )
 ```
 
-
 And, load/import the `BRFSS` dataset:
-
 
 ```{r}
 #| label: import-brffss-dataset
@@ -38,12 +45,13 @@ And, load/import the `BRFSS` dataset:
 brfss <- import(here("data", "BRFSS2021.XPT"))
 ```
 
-
 ## Examining your data
 
-
-It is helpful to first get a feel of your data and its structure before delving into analysis. `R` has several options for this. When we imported the `BRFSS` dataset, we saved it as an `R` object, `brfss`. All objects in `R` have attributes which can be accessed using the `str()` function. 
-
+It is helpful to first get a feel of your data and its structure before
+delving into analysis. `R` has several options for this. When we
+imported the `BRFSS` dataset, we saved it as an `R` object, `brfss`. All
+objects in `R` have attributes which can be accessed using the `str()`
+function.
 
 ```{r}
 #| label: brfss-structure
@@ -52,9 +60,10 @@ It is helpful to first get a feel of your data and its structure before delving 
 str(brfss)
 ```
 
-
-The `str()` output tells us that `brfss` is of the `data.frame` class with `r nrow(brfss)` rows and `r ncol(brfss)` columns. Also shown are variable names, their types and labels as well as values of the first 10 observations for each variable.
-
+The `str()` output tells us that `brfss` is of the `data.frame` class
+with `r nrow(brfss)` rows and `r ncol(brfss)` columns. Also shown are
+variable names, their types and labels as well as values of the first 10
+observations for each variable.
 
 You can access all the information from the `str()` output individually:
 
@@ -86,9 +95,8 @@ ncol(brfss)
 colnames(brfss)
 ```
 
-
-Applying the `class()` function over all variables using the `sapply()` returns the class of all variables at once:
-
+Applying the `class()` function over all variables using the `sapply()`
+returns the class of all variables at once:
 
 ```{r}
 #| label: variable-classes-sapply
@@ -97,9 +105,8 @@ Applying the `class()` function over all variables using the `sapply()` returns 
 sapply(brfss, class)
 ```
 
-
-Instead of using `sapply()`, the [`purrr`](https://purrr.tidyverse.org/) package, part of the `tidyverse` provides an alternative in `map()`:
-
+Instead of using `sapply()`, the [`purrr`](https://purrr.tidyverse.org/)
+package, part of the `tidyverse` provides an alternative in `map()`:
 
 ```{r}
 #| label: variable-classes-map
@@ -108,9 +115,7 @@ Instead of using `sapply()`, the [`purrr`](https://purrr.tidyverse.org/) package
 map(brfss, class)
 ```
 
-
 To get the class of a single variable:
-
 
 ```{r}
 #| label: class-gender
@@ -119,9 +124,7 @@ To get the class of a single variable:
 class(brfss$`_DRNKWK1`)
 ```
 
-
 To view the first 6 observations in a dataset:
-
 
 ```{r}
 #| label: head-brfss
@@ -130,9 +133,8 @@ To view the first 6 observations in a dataset:
 head(brfss)
 ```
 
-
-Specifying a value in `head()` returns that number of first observations in the dataset. For instance, to get the first 3 observations:
-
+Specifying a value in `head()` returns that number of first observations
+in the dataset. For instance, to get the first 3 observations:
 
 ```{r}
 #| label: first-3-obs
@@ -141,9 +143,8 @@ Specifying a value in `head()` returns that number of first observations in the 
 head(brfss, 3)
 ```
 
-
-To view a specified number of last observations in a dataset, use `tail()`:
-
+To view a specified number of last observations in a dataset, use
+`tail()`:
 
 ```{r}
 #| label: tail-brfss
@@ -153,9 +154,8 @@ tail(brfss)
 #tail(brfss, 8) # last 8 observations
 ```
 
-
-To get variable attributes, use `attributes()`: all variables in `brfss` have a label attribute.
-
+To get variable attributes, use `attributes()`: all variables in `brfss`
+have a label attribute.
 
 ```{r}
 #| label: attributes-all-variables
@@ -166,9 +166,9 @@ map(brfss, attributes)
 # attributes(brfss$MARITAL): returns attributes for specified variable only
 ```
 
-
-`dplyr::glimpse()` provides an alternative to `str()`. It's output is more compact and easier to grasp. It, however, does not show variable attributes.
-
+`dplyr::glimpse()` provides an alternative to `str()`. It's output is
+more compact and easier to grasp. It, however, does not show variable
+attributes.
 
 ```{r}
 #| label: glimpse-brfss
@@ -177,9 +177,8 @@ map(brfss, attributes)
 glimpse(brfss)
 ```
 
-
-For the classic spreadsheet view of your data in `RStudio`, you can use `tibble::view()` (or base `R`'s `View()`:
-
+For the classic spreadsheet view of your data in `RStudio`, you can use
+`tibble::view()` (or base `R`'s `View()`:
 
 ```{r}
 #| label: view-dataset
@@ -189,9 +188,7 @@ For the classic spreadsheet view of your data in `RStudio`, you can use `tibble:
 tibble::view(brfss)
 ```
 
-
 `DT::datatable()` enables an interactive spreadsheet view of a dataset:
-
 
 ```{r}
 #| label: datatable-brfss
@@ -201,7 +198,6 @@ brfss %>%
   slice_sample(n = 100) %>% 
   datatable()
 ```
-
 
 ## Cleaning variable names
 
@@ -216,9 +212,8 @@ You should aim for good variable names by following these guidelines:
 -   Use an underscore to separate words within a variable name
 -   Avoid using existing `R` function names or keywords
 
-
-The variable names in `brfss` violate several of the above guidelines. We can rectify this use `clean_names()` from the `janitor` package.
-
+The variable names in `brfss` violate several of the above guidelines.
+We can rectify this use `clean_names()` from the `janitor` package.
 
 ```{r}
 #| label: clean-variable-names
@@ -231,9 +226,9 @@ brfss <- brfss %>%
 colnames(brfss)
 ```
 
-
-`clean_names()` does a decent in this case but in some other cases, its output might not be exactly what you wish. In this case, you may consider renaming variables by hand using `rename()`. For example:
-
+`clean_names()` does a decent in this case but in some other cases, its
+output might not be exactly what you wish. In this case, you may
+consider renaming variables by hand using `rename()`. For example:
 
 ```{r}
 #| label: rename-to-uppercase
@@ -248,9 +243,8 @@ brfss %>%
   colnames()
 ```
 
-
-You can rename variables using a function within `rename_with()`. If, for example, we wanted to convert all variable names to uppercase:
-
+You can rename variables using a function within `rename_with()`. If,
+for example, we wanted to convert all variable names to uppercase:
 
 ```{r}
 #| label: rename-with-tolower
@@ -261,18 +255,26 @@ brfss %>%
   colnames()
 ```
 
-
 ## Working with labels
 
-Although short names are preferred, they may not be sufficient in accurately representing meanings of variables. Variable (and value) labels can provide detailed descriptions of the variables to ensure clarity on what they represent. Using labels can prevent errors and misunderstandings, and eliminate the need to switch between a codebook and data, particularly when working with secondary datasets like the `BRFSS` dataset. It is worth noting that labels may not be supported by some functions, in which case you might need to drop them. Keeping a very small subset of a labelled dataset may be handy for reference.
+Although short names are preferred, they may not be sufficient in
+accurately representing meanings of variables. Variable (and value)
+labels can provide detailed descriptions of the variables to ensure
+clarity on what they represent. Using labels can prevent errors and
+misunderstandings, and eliminate the need to switch between a codebook
+and data, particularly when working with secondary datasets like the
+`BRFSS` dataset. *It is worth noting that labels may not be supported by some base and other package functions, leading to unexpected behavior. In such cases, you may work primarily with the non-labelled dataset but keep a small subset of labelled data for reference.*
 
-The  [`expss`](https://cran.r-project.org/web/packages/expss/index.html), [`sjlabelled`](https://cran.r-project.org/web/packages/sjlabelled/vignettes/intro_sjlabelled.html) and [`labelled`](https://cran.r-project.org/web/packages/labelled/vignettes/intro_labelled.html) packages simplify working with labels in `R`. 
 
+The [`expss`](https://cran.r-project.org/web/packages/expss/index.html),
+[`sjlabelled`](https://cran.r-project.org/web/packages/sjlabelled/vignettes/intro_sjlabelled.html)
+and
+[`labelled`](https://cran.r-project.org/web/packages/labelled/vignettes/intro_labelled.html)
+packages simplify working with labels in `R`.
 
 ### Variable labels
 
 To view labels of all variables, you can use `labelled::var_label()`:
-
 
 ```{r}
 #| label: get-variable-labels-labelled
@@ -281,9 +283,8 @@ To view labels of all variables, you can use `labelled::var_label()`:
 labelled::var_label(brfss)
 ```
 
-
-For a more compact detailed view of variable labels, you can use `labelled::look_for()`:
-
+For a more compact detailed view of variable labels, you can use
+`labelled::look_for()`:
 
 ```{r}
 #| label: view-brfss-var-labels
@@ -294,9 +295,8 @@ labelled::look_for(brfss)
 #sjlabelled::get_label(brfss)
 ```
 
-
-You can get the label for a single variable, using `labelled::var_label()`:
-
+You can get the label for a single variable, using
+`labelled::var_label()`:
 
 ```{r}
 #| label: get-chckdny2-variable-label
@@ -308,9 +308,7 @@ labelled::var_label(brfss$chckdny2)
 #sjlabelled::get_label(brfss$chckdny2)
 ```
 
-
-To remove a variable label(s): 
-
+To remove a variable label(s):
 
 ```{r}
 #| label: remove-chckdyn2
@@ -326,10 +324,8 @@ expss::drop_var_labs(brfss)
 #labelled::var_label(brfss) <- NULL
 ```
 
-
-
-Let's assign modified labels to variables in the `brfss` dataset using `expss::apply_labels()`:
-
+Let's assign modified labels to variables in the `brfss` dataset using
+`expss::apply_labels()`:
 
 ```{r}
 #| label: add-variable-labels
@@ -369,9 +365,7 @@ brfss <- brfss %>%
   )
 ```
 
-
 Let's check our new assigned variable labels:
-
 
 ```{r}
 #| label: check-new-brfss-variable-labels
@@ -380,12 +374,13 @@ Let's check our new assigned variable labels:
 look_for(brfss)
 ```
 
-
 ### Value labels
 
-
-A glimpse of the `brfss` data showed values for all variables recoded as numbers (e.g., 1, 2, 3). These values are not what expect for some non-numeric variables like `gender`. These numbers represent categories within those variables. Using `apply_labels()`, let's assign labels to explicitly indicate what the values stand for. 
-
+A glimpse of the `brfss` data showed values for all variables recoded as
+numbers (e.g., 1, 2, 3). These values are not what expect for some
+non-numeric variables like `gender`. These numbers represent categories
+within those variables. Using `apply_labels()`, let's assign labels to
+explicitly indicate what the values stand for.
 
 ```{r}
 #| label: add-value-labels
@@ -537,9 +532,7 @@ brfss <- brfss %>%
   )
 ```
 
-
 Let's look at all value labels:
-
 
 ```{r}
 #| label: get-all-value-labels
@@ -548,9 +541,7 @@ Let's look at all value labels:
 sjlabelled::get_labels(brfss)
 ```
 
-
 To look at value labels for a single variable:
-
 
 ```{r}
 #| label: value-labels-cvdstrk3
@@ -561,9 +552,7 @@ expss::val_lab(brfss$cvdstrk3)
 #sjlabelled::get_labels(brfss$cvdstrk3)
 ```
 
-
 To drop value labels:
-
 
 ```{r}
 #| label: drop-value-labels
@@ -575,15 +564,14 @@ expss::drop_val_labs(brfss)
 # drop value labels for a single variable
 expss::drop_val_labs(brfss$genhlth)
 
-# drop all variable and value labels
-expss::drop_all_labels(brfss)
 ```
-
 
 ## Selecting columns
 
-`dplyr::select()` simplifies working with only a specific subset of columns within a dataset. Note that when using `select()`, variables will be returned in the specified order, and any variables that are not included will be removed from the output.
-
+`dplyr::select()` simplifies working with only a specific subset of
+columns within a dataset. Note that when using `select()`, variables
+will be returned in the specified order, and any variables that are not
+included will be removed from the output.
 
 ### Positional selection
 
@@ -607,7 +595,8 @@ brfss %>%
   glimpse()
 ```
 
-We can select variables by specifying their names, either quoted or unquoted:
+We can select variables by specifying their names, either quoted or
+unquoted:
 
 ```{r}
 #| label: select-racegr3-sex-michd-genhlth
@@ -619,7 +608,9 @@ brfss %>%
 ```
 
 
-Using [`tidy selection`](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html), you can select columns based on their names or properties. For instance, to select the last column:
+Using [`tidy selection`](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html),
+you can select columns based on their names or properties. For instance,
+to select the last column:
 
 
 ```{r}
@@ -631,24 +622,21 @@ brfss %>%
   head()
 ```
 
-
 Select the 3rd last column:
-
 
 ```{r}
 #| label: select-third-last-col
 
 # select third last column
 brfss %>%
-  select(last_col(offset = 2L))
+  select(last_col(offset = 2L)) %>% 
+  head()
 ```
-
 
 ### Tidy selection
 
-You can select variables based on their data type. For example, to select all numerical
-variables:
-
+You can select variables based on their data type. For example, to
+select all numerical variables:
 
 ```{r}
 #| label: select-num-cols
@@ -661,9 +649,8 @@ brfss %>%
 # use is.factor for factors; is.character for character variables
 ```
 
-
-You can select all (`all_of()`) or any (`any_of()`) variables whose names are contained in an external character vector:
-
+You can select all (`all_of()`) or any (`any_of()`) variables whose
+names are contained in an external character vector:
 
 ```{r}
 #| label: select-any-vars-vector
@@ -677,7 +664,6 @@ brfss %>%
   glimpse()
 ```
 
-
 ```{r}
 #| label: select-all-vars-vector
 
@@ -690,9 +676,8 @@ brfss %>%
   glimpse()
 ```
 
-
-You can select variables whose names contain specified strings/characters:
-
+You can select variables whose names contain specified
+strings/characters:
 
 ```{r}
 #| label: select-vars-contain-med
@@ -703,7 +688,6 @@ brfss %>%
   glimpse()
 ```
 
-
 ```{r}
 #| label: select-vars-starts-with-f
 
@@ -712,7 +696,6 @@ brfss %>%
   select(starts_with("f")) %>% 
   glimpse()
 ```
-
 
 ```{r}
 #| label: select-vars-ends-with-1
@@ -723,11 +706,10 @@ brfss %>%
   glimpse()
 ```
 
-
 ### Removing columns
 
-You can exclude/remove columns by pre-pending a minus (-) sign to the variable name:
-
+You can exclude/remove columns by pre-pending a minus (-) sign to the
+variable name:
 
 ```{r}
 #| label: remove-wtkg3-htm4-vars
@@ -737,7 +719,6 @@ brfss %>%
   select(-wtkg3, -htm4) %>% 
   glimpse()
 ```
-
 
 ```{r}
 #| label: remove-wtkg3-htm4-tidy-select
@@ -751,7 +732,6 @@ brfss %>%
   glimpse()
 ```
 
-
 ```{r}
 #| label: remove-vars-contains-med
 
@@ -760,7 +740,6 @@ brfss %>%
   select(-contains("med")) %>% 
   glimpse()
 ```
-
 
 ## Subsetting rows
 
@@ -787,27 +766,29 @@ To extract data from the first 10 observations:
 ```{r}
 #| label: slice-head-10
 
+# get first 10 observations
 brfss %>% 
   slice_head(n = 10)
 ```
-
 
 To extract data for the last observation:
 
 ```{r}
 #| label: slice-tail
 
+# get last observations
 brfss %>% 
   slice_tail()
 ```
 
-To extract data for the last 10 observations:
+To extract data for the last 5 observations:
 
 ```{r}
 #| label: slice-tail-10
 
+# get last 5 observations
 brfss %>% 
-  slice_tail(n = 10)
+  slice_tail(n = 5)
 ```
 
 To extract data for the 1st, 3rd, 7th and 12th observations:
@@ -815,6 +796,7 @@ To extract data for the 1st, 3rd, 7th and 12th observations:
 ```{r}
 #| label: slice-1-3-7-12
 
+# get 1st, 3rd, 7th and 12th observations
 brfss %>% 
   slice(c(1, 3, 7, 12))
 ```
@@ -824,29 +806,32 @@ To extract data for a random sample of observations:
 ```{r}
 #| label: slice-sample-12
 
+# get random sample of 5 observations
 brfss %>% 
   slice_sample(n = 5)
 ```
 
 You can extract data for observations based on values of another
 variable. To extract data for the first 5 observations with the
-*highest* values of BMI:
+*highest* values of total number of vegetables consumed per day:
 
 ```{r}
-#| label: slice-max-bmi
+#| label: slice-max-vegesu1a
 
+# five observations with the highest vegesu1
 brfss %>% 
-  slice_max(n = 5, order_by = bmi)
+  slice_max(n = 5, order_by = vegesu1)
 ```
 
-To extract data for the first 5 observations with the *lowest* values of
-BMI:
+To extract data for the first 2 observations with the *lowest* values of
+total number of vegetables consumed per day:
 
 ```{r}
 #| label: slice-min-bmi
 
+# get 2 observations with least vegesu1
 brfss %>% 
-  slice_min(n = 5, order_by = bmi)
+  slice_min(n = 2, order_by = vegesu1)
 ```
 
 ### Conditional subsetting
@@ -858,6 +843,7 @@ above 64 years:
 ```{r}
 #| label: filter-above-64years
 
+# get observations aged above 64 years
 brfss %>% 
   filter(age80 > 64) %>% 
   head()
@@ -868,6 +854,7 @@ To get observations aged between 40 and 59 years:
 ```{r}
 #| label: filter-between-40-59years
 
+# get observations aged between 40 and 59 years
 brfss %>% 
   filter(age80 >= 40 & age80 <= 59) %>% 
   head()
@@ -878,6 +865,7 @@ Alternatively:
 ```{r}
 #| label: filter-between-40-59years-alternative
 
+# get observations aged between 40 and 59 years
 brfss %>% 
   filter(between(age80, 40, 59)) %>% 
   head()
@@ -888,21 +876,21 @@ To get observations aged either 18, 25, 30, 45, 50 or 60:
 ```{r}
 #| label: filter-in-vector
 
+# get observations aged either 18, 25, 30, 45, 50 or 60 years
 brfss %>% 
   filter(age80 %in% c(18, 25, 30, 45, 50, 60)) %>% 
   head()
 ```
 
-To get observations who are overweight/obese:
+To get only male observations:
 
 ```{r}
-#| label: filter-overweight-obese
+#| label: filter-males
 
+# get only male observations
 brfss %>% 
-  filter(
-    overweight_obese == "Yes"
-  ) %>% 
-  head(10)
+  filter(sex == 1) %>% 
+  head()
 ```
 
 To get observations above 45 years *and* have ever had a diabetes
@@ -911,8 +899,9 @@ diagnosis:
 ```{r}
 #| label: filter-above45-diabetes-dx
 
+# get observations above 45 years and ever had a diabetes diagnosis
 brfss %>% 
-  filter(age80 > 45 & diabete4 == "Yes") %>% 
+  filter(age80 > 45 & diabete4 == 1) %>% 
   head()
 ```
 
@@ -922,24 +911,10 @@ medications:
 ```{r}
 #| label: filter-bpmeds-cholmeds
 
+# get observations on blood pressure and high cholesterol medication
 brfss %>% 
   filter(bpmeds == 1 | cholmed3 == 1) %>% 
-  head()
-```
-
-To get observations whose BMI is greater or less than than 1.5 times the
-interquartile range below the first or above the third quantile (i.e.,
-Tukey's IQR criteria for outliers):
-
-```{r}
-#| label: filter-iqr-outliers
-
-brfss %>% 
-  filter(
-    bmi > quantile(bmi, na.rm = TRUE)[5] + 1.5*IQR(bmi, na.rm = TRUE) |
-      bmi < quantile(bmi, na.rm = TRUE)[2] - 1.5*IQR(bmi, na.rm = TRUE)
-  ) %>% 
-  head()
+  head(3)
 ```
 
 To get all observations with missing data for weight (`wtkg3`):
@@ -947,6 +922,7 @@ To get all observations with missing data for weight (`wtkg3`):
 ```{r}
 #| label: filter-missing-wtkg3
 
+# get all observations with missing values for wtkg3
 brfss %>% 
   filter(is.na(wtkg3)) %>% 
   tally() # counts the number of rows [alternative: sum(is.na(brfss$wtkg3))]
@@ -957,11 +933,11 @@ To get all observations without missing data for weight:
 ```{r}
 #| label: filter-nonmissing-wtkg3
 
+# get observations with non-missing data for wtkg3
 brfss %>% 
   filter(!is.na(wtkg3)) %>% # '!' negates the condition
   tally()
 ```
-
 
 ## Re-ordering rows and columns
 
@@ -974,9 +950,10 @@ increasing number of alcoholic drinks consumed per week:
 ```{r}
 #| label: arrange-drnkwk1-ascending
 
+# arrange by drnkwk1 in ascending order
 brfss %>% 
-  arrange(drnkwk1) %>%  # ascending order is default
-  head()
+  arrange(drnkwk1) %>% 
+  head(3)
 ```
 
 To arrange observations in descending order of `drnkwk1`:
@@ -984,9 +961,10 @@ To arrange observations in descending order of `drnkwk1`:
 ```{r}
 #| label: arrange-drnkwk1-descending
 
+# arrange by drnkwk1 in descending order
 brfss %>% 
   arrange(desc(drnkwk1)) %>% 
-  head()
+  head(3)
 ```
 
 `dplyr::arrange()` sorts character variables in alphabetical order.
@@ -996,6 +974,7 @@ name:
 ```{r}
 #| label: arrange-msleep-name
 
+# arrange name by alphabetical order
 msleep %>% 
   arrange(name) %>% 
   slice_head(n = 20)
@@ -1008,21 +987,24 @@ brain weight (`brainwt`) and total sleep (`sleep_total`):
 ```{r}
 #| label: arrange-name-bodywt-sleep
 
+# arrange by name, bodywt, and sleep_total
 msleep %>% 
   select(name, brainwt, sleep_total) %>% 
   arrange(name, brainwt, sleep_total) %>% 
-  head(n = 20)
+  head(n = 10)
 ```
 
 ### Re-ordering columns
 
-`dplyr::relocate()` can be used to change order of columns in a dataset. Let's relocate `bmi` to the end of the dataset:
+`dplyr::relocate()` can be used to change order of columns in a dataset.
+Let's relocate `michd` to the end of the dataset:
 
 ```{r}
-#| label: relocate-bmi-end
+#| label: relocate-michd-end
 
+# relocate michd to end of dataset
 brfss %>% 
-  relocate(bmi, .after = last_col()) %>% 
+  relocate(michd, .after = last_col()) %>% 
   glimpse()
 ```
 
@@ -1031,35 +1013,43 @@ Let's relocate `urbstat` to the front of the dataset:
 ```{r}
 #| label: relocate-urbstat-front
 
+# relocate urbstat to start of dataset
 brfss %>% 
-  relocate(urbstat, .before = age80) %>% 
+  relocate(urbstat) %>% 
   glimpse()
 ```
 
-
-For more options, call `?relocate`. You can also specify positions for new variables in the `mutate()` call.
-
+For more options, call `?relocate`. You can also specify positions for
+new variables in the `mutate()` call.
 
 ## Converting variables to appropriate R data types/structures
 
-
-When importing data into `R`, variables may be converted to data types that do not correspond to the actual data they represent. You should always pay attention to such discrepancies before going further with your analysis. You can convert variable(s) to another data type using the `as.` functions: `as.numeric()`, `as.integer()`, `as.factor()`, `as.character()`, `as.logical()` etc. 
-
+When importing data into `R`, variables may be converted to data types
+that do not correspond to the actual data they represent. You should
+always pay attention to such discrepancies before going further with
+your analysis. You can convert variable(s) to another data type using
+the `as.` functions: `as.numeric()`, `as.integer()`, `as.factor()`,
+`as.character()`, `as.logical()` etc.
 
 ## Working with factors
 
-
-Categorical variables in `R` are represented using the `factor` data type, where each unique category is referred to as a `level`. However, when importing the `brfss` dataset, all variables were initially encoded as integers, which is not a suitable representation for categorical variables. To resolve this, we will convert categorical variables to factors and illustrate how they can be modified using the [`forcats`](https://forcats.tidyverse.org/) package, which is loaded with the `tidyverse.`
-
+Categorical variables in `R` are represented using the `factor` data
+type, where each unique category is referred to as a `level`. However,
+when importing the `brfss` dataset, all variables were initially encoded
+as integers, which is not a suitable representation for categorical
+variables. To resolve this, we will convert categorical variables to
+factors and illustrate how they can be modified using the
+[`forcats`](https://forcats.tidyverse.org/) package, which is loaded
+with the `tidyverse.`
 
 ### Converting to factors
 
-
-While `dplyr::as_factor()` and its base `R` alternatives (`factor()`, and `as.factor()`) can convert variables to factors, any variable labels will be lost during the conversion process. For labelled variables, using `sjlabelled::as_factor()` will retain all label attributes.
-
+While `forcats::as_factor()` and its base `R` alternatives (`factor()`,
+and `as.factor()`) can convert variables to factors, any variable labels
+will be lost during the conversion process. For labelled variables,
+using `sjlabelled::as_factor()` will retain all label attributes.
 
 You can convert variables to factors one-by-one:
-
 
 ```{r}
 #| label: convert-sex-to-factor
@@ -1074,8 +1064,9 @@ brfss %>%
 ```
 
 
-When working with ordinal categorical variables, we have to specify this during our conversion to factor. If, for example, we wanted too convert general health (`genhlth`) into an ordered factor:
-
+When working with ordinal categorical variables, we have to specify this
+during our conversion to factor. If, for example, we wanted too convert
+general health (`genhlth`) into an ordered factor:
 
 ```{r}
 #| label: convert-genhlth-ord-factor
@@ -1090,9 +1081,8 @@ brfss %>%
 
 ```
 
-
-We can use `dplyr::across()` to convert all categorical variables into factors in a single step:
-
+We can use `dplyr::across()` to convert all categorical variables into
+factors in a single step:
 
 ```{r}
 #| label: convert-categorical-to-factors
@@ -1106,31 +1096,29 @@ fct_vars <- c("urbstat", "racegr3", "sex", "marital", "employ1", "educag",
 # convert all variables included in fct_vars to factors
 brfss <- brfss %>% 
   mutate(across(all_of(fct_vars), sjlabelled::as_factor))
+
 ```
 
-
-Let's check whether factor conversion was successful while preserving variable labels:
-
+Let's check whether factor conversion was successful:
 
 ```{r}
 #| label: check-factor-conversion-success
 
 # check whether conversion was successful
-map(brfss, attributes)
+map(brfss, class)
 ```
 
-
-From the above output, our factor conversion was a success. For each factor variable, we see its name, label and levels.
-
+From the above output, our factor conversion was a success. For each
+factor variable, we see its name, label and levels.
 
 ### Recoding factor levels
 
-Earlier, we assigned value labels with `expss::apply_labels()` prior to converting variables into factors. In cases where
-variables are already factors, the `forcats::fct_recode()` function can be utilized to recode levels accordingly.
-
+Earlier, we assigned value labels with `expss::apply_labels()` prior to
+converting variables into factors. In cases where variables are already
+factors, the `forcats::fct_recode()` function can be utilized to recode
+levels accordingly.
 
 We can, for instance, change level names for factors one-by-one:
-
 
 ```{r}
 #| label: recode-rfdhrv7
@@ -1149,9 +1137,8 @@ brfss %>%
   levels()
 ```
 
-
-Or, multiple factors in one step. Let's recode all `Yes` levels to `AFFIRMATIVE` and `No` levels to `NEGATIVE`:
-
+Or, multiple factors in one step. Let's recode all `Yes` levels to
+`AFFIRMATIVE` and `No` levels to `NEGATIVE`:
 
 ```{r}
 #| label: recode-vars-at-once
@@ -1168,12 +1155,11 @@ brfss %>%
   map(levels)
 ```
 
-
 ### Collapsing factor levels
 
-
-You can combine factor levels into one using `forcats::fct_collapse()`. Let's collapse levels for marital status (`marital`) and diabetes (`diabete4`):
-
+You can combine factor levels into one using `forcats::fct_collapse()`.
+Let's collapse levels for marital status (`marital`) and diabetes
+(`diabete4`):
 
 ```{r}
 #| label: collapse-marital-and-diabete4
@@ -1201,9 +1187,8 @@ brfss %>%
 
 ### Re-ordering factor levels
 
-
-`R` defaults to alphabetical ordering of factor levels, but you can reorder them to your needs using `forcats::fct_relevel()`:
-
+`R` defaults to alphabetical ordering of factor levels, but you can
+reorder them to your needs using `forcats::fct_relevel()`:
 
 ```{r}
 #| label: change-factor-levels-manually
@@ -1227,7 +1212,6 @@ brfss %>%
 
 You can also reorder levels of multiple factors at once:
 
-
 ```{r}
 #| label: relevel-across-multiple-factors
 
@@ -1244,9 +1228,9 @@ brfss %>%
   map(levels)
 ```
 
-
-You can also change factor level order based on number of observations in each level. We'll demonstrate this using smoking status (`smoker3`). First, let's get the frequency of each level using `janitor::tabyl()`:
-
+You can also change factor level order based on number of observations
+in each level. We'll demonstrate this using smoking status (`smoker3`).
+First, let's get the frequency of each level using `janitor::tabyl()`:
 
 ```{r}
 #| label: check-smoker3-level-freq
@@ -1256,9 +1240,7 @@ brfss %>%
   tabyl(smoker3)
 ```
 
-
 Now, let's reorder the levels according to frequency:
-
 
 ```{r}
 #| label: reorder-smoker3-levels-by-freq
@@ -1271,9 +1253,8 @@ brfss %>%
   tabyl(smoker3)
 ```
 
-
-To reverse the default descending order to ascending using `forcats::fct_rev()`:
-
+To reverse the default descending order to ascending using
+`forcats::fct_rev()`:
 
 ```{r}
 #| label: reorder-smoker3-levels-by-freq-ascending
@@ -1286,9 +1267,9 @@ brfss %>%
   tabyl(smoker3)
 ```
 
-
-You can reorder factor levels based on values in another variable. Let's change order of `smoker3` levels using number of alcoholic drinks consumed per week:
-
+You can reorder factor levels based on values in another variable. Let's
+change order of `smoker3` levels using number of alcoholic drinks
+consumed per week:
 
 ```{r}
 #| label: reorder-smoker3-by-bmi
@@ -1301,76 +1282,22 @@ brfss %>%
   tabyl(smoker3)
 ```
 
-
-The `forcats` package offers a lot more functions prefixed with `fct_` for manipulating factors. A list of available functions can be obtained by typing `?fct_` in the RStudio console.
-
-
-`forcats` functions are not fully compatible with labels having them dropped during manipulation:
-
-
-```{r}
-#| label: recheck-var-val-labs
-
-# check for variable labels after factor manipulation with forcats
-look_for(brfss)
-```
-
-
-If you wish to continue using labels, you can just re-assign them:
-
-
-```{r}
-#| label: re-assign-var-labels
-
-# re-assign variable labels
-brfss <- brfss %>% 
-  apply_labels(
-    urbstat   = "Urban/Rural status",
-    racegr3   = "Race",
-    sex       = "Sex",
-    marital   = "Marital status",
-    educag    = "Highest education level completed",
-    bmi_cat   = "BMI classification",
-    overweight_obese = "Overweight/obesity indicator",
-    employ1   = "Employment status",
-    incomg1   = "Total annual income",
-    smoker3   = "Smoking status",
-    rfsmok3   = "Current smoking status",
-    drnkwk1   = "Number of alcoholic beverages consumed per week",
-    rfdrhv7   = "Heavy drinker",
-    frutsu1   = "Total fruits consumed per day",
-    vegesu1   = "Total vegetables consumed per day",
-    frtlt1a   = "Consume fruits one or more times per day",
-    veglt1a   = "Consume vegetables one or more times per day",
-    totinda   = "Physically active during past 30 days",
-    genhlth   = "General health rating",
-    rfhype6   = "Hypertension diagnosis",
-    bpmeds    = "Currently taking medicine for high blood pressure",
-    rfchol3   = "High cholesterol diagnosis",
-    cholmed3  = "Currently taking medicine for cholesterol",
-    michd     = "Ever had coronary heart disease or myocardial infarction",
-    cvdstrk3  = "Ever had a stroke diagnosis",
-    addepev3  = "Depressive disorder diagnosis",
-    chckdny2  = "Kidney disease diagnosis",
-    diabete4  = "Diabetes diagnosis"
-  )
-
-# check variable labels after re-assignment
-look_for(brfss)
-```
+The `forcats` package offers a lot more functions prefixed with `fct_`
+for manipulating factors. A list of available functions can be obtained
+by typing `?fct_` in the RStudio console.
 
 
 ## Transforming and computing new variables
 
-
-Sometimes, you may wish to transform and/or create new variables from existing variables in a dataset. All such operations are performed within `dplyr::mutate()`.
-
+Sometimes, you may wish to transform and/or create new variables from
+existing variables in a dataset. All such operations are performed
+within `dplyr::mutate()`.
 
 ### Modifying variables in place
 
-
-Let's divide values of the `htm4`, `wtkg3`, `drnkwk1`, `frutsu1`, and `vegesu1`variables by 100 to remove the 2 implied decimal places they were entered with.
-
+Let's divide values of the `htm4`, `wtkg3`, `drnkwk1`, `frutsu1`, and
+`vegesu1`variables by 100 to remove the 2 implied decimal places they
+were entered with.
 
 ```{r}
 #| label: glimpse-select-variables
@@ -1380,7 +1307,6 @@ brfss %>%
   select(htm4, wtkg3, drnkwk1, frutsu1) %>% 
   glimpse()
 ```
-
 
 ```{r}
 #| label: divide-by-100
@@ -1398,11 +1324,12 @@ brfss <- brfss %>%
 glimpse(select(brfss, all_of(implied_2dp)))
 ```
 
-
 ### Creating new variables
 
-We will now compute a `bmi` variable, representing the respondent's body mass index (BMI), which is calculated as the weight in kilograms divided by the square of the height in meters: $BMI = \frac{weight (kg)}{height (m)^2}$.
-
+We will now compute a `bmi` variable, representing the respondent's body
+mass index (BMI), which is calculated as the weight in kilograms divided
+by the square of the height in meters:
+$BMI = \frac{weight (kg)}{height (m)^2}$.
 
 ```{r}
 #| label: compute-bmi-variable
@@ -1418,13 +1345,17 @@ brfss <- brfss %>%
 var_lab(brfss$bmi) = "Body mass index (kg/m^2)"
 ```
 
-
 ### Continuous to Categorical variable
 
 #### Dichotomous variable
 
-Sometimes, you may wish to transform a continuous variable into a categorical variable. To create a dichotomous variable, `dplyr::if_else()` takes a conditional statement, where the first value is returned if the condition is true, and the second value is returned if the condition is false. Let's create a new variable, `overweight_obese` which indicates whether a person has a BMI of 25 or greater, which is considered overweight or obese.
-
+Sometimes, you may wish to transform a continuous variable into a
+categorical variable. To create a dichotomous variable,
+`dplyr::if_else()` takes a conditional statement, where the first value
+is returned if the condition is true, and the second value is returned
+if the condition is false. Let's create a new variable,
+`overweight_obese` which indicates whether a person has a BMI of 25 or
+greater, which is considered overweight or obese.
 
 ```{r}
 #| label: create-overweight-obesity-variable
@@ -1444,11 +1375,11 @@ brfss <- brfss %>%
 var_lab(brfss$overweight_obese) = "Overweight or obese indicator"
 ```
 
-
 #### Polytomous variable
 
-To transform a continuous variable into a polytomous variable (with more than 2 categories), you can use `dplyr::case_when()`. Let' create a variable for BMI classification.
-
+To transform a continuous variable into a polytomous variable (with more
+than 2 categories), you can use `dplyr::case_when()`. Let' create a
+variable for BMI classification.
 
 ```{r}
 #| label: create-BMI-categories
@@ -1479,11 +1410,12 @@ brfss <- brfss %>%
 var_lab(brfss$bmi_cat) <- "BMI classification"
 ```
 
-
 ### Row-wise operations
 
-`dplyr::rowwise()` and `dplyr::c_across()` simplify the process of performing row-wise operations on a data frame. As an example, let's consider a hypothetical scenario where we need to create a new variable, `mean_age_bmi`, that represents the mean of a respondent's age and BMI.
-
+`dplyr::rowwise()` and `dplyr::c_across()` simplify the process of
+performing row-wise operations on a data frame. As an example, let's
+consider a hypothetical scenario where we need to create a new variable,
+`mean_age_bmi`, that represents the mean of a respondent's age and BMI.
 
 ```{r}
 #| label: rowwise-computation-1
@@ -1495,12 +1427,11 @@ brfss %>%
     mean_age_bmi = mean(c(age80, bmi)),
     .keep = "used" # keeps only input and output used in your manipulation
   ) %>% 
-  head()
+  head(3)
 ```
 
-
-If we omitted the `rowwise()` function in the above code, we would get unexpected results:
-
+If we omitted the `rowwise()` function in the above code, we would get
+unexpected results:
 
 ```{r}
 #| label: incorrect-rowwise
@@ -1511,12 +1442,15 @@ brfss %>%
     mean_age_bmi = mean(c(age80, bmi), na.rm = TRUE),
     .keep = "used"
   ) %>% 
-  head()
+  head(3)
 ```
 
-
-Sometimes, you may wish to perform row-wise operations on columns with a common characteristic. Here, you can use the `dplyr::c_across()` which supports tidy selection. For example, let's create a new variable, `sum_all_num`, which represents the sum of all numerical variables in the `brfss` dataset. Note that since `c_across()` does not support labels which necessitates removing them before computation.
-
+Sometimes, you may wish to perform row-wise operations on columns with a
+common characteristic. Here, you can use the `dplyr::c_across()` which
+supports tidy selection. For example, let's create a new variable,
+`sum_all_num`, which represents the sum of all numerical variables in
+the `brfss` dataset. Note that since `c_across()` does not support
+labels which necessitates removing them before computation.
 
 ```{r}
 #| label: rowwise-dplyr
@@ -1531,12 +1465,11 @@ brfss %>%
       c_across(where(is.numeric)), na.rm = TRUE) 
   ) %>% 
   select(where(is.numeric)) %>% 
-  head()
+  head(3)
 ```
 
-
-Base `R` has row-wise summary functions which are much faster than `dplyr` and support labels:
-
+Base `R` has row-wise summary functions which are much faster than
+`dplyr` and support labels:
 
 ```{r}
 #| label: rowwise-base-dplyr-hybrid
@@ -1548,15 +1481,14 @@ brfss %>%
     sum_all_num = rowSums(across(where(is.numeric)), na.rm = TRUE)
   ) %>% 
   select(where(is.numeric)) %>% 
-  head()
+  head(3)
 ```
-
 
 ## Working with groups within data
 
-
-`dplyr::group_by()` divides a dataset's observations into groups defined by, often, a factor variable, after which all subsequent functions will operate on by the grouping variable. To group by `brfss` by sex:
-
+`dplyr::group_by()` divides a dataset's observations into groups defined
+by, often, a factor variable, after which all subsequent functions will
+operate on by the grouping variable. To group by `brfss` by sex:
 
 ```{r}
 #| label: group-by-demo
@@ -1564,12 +1496,12 @@ brfss %>%
 # group brfss by sex
 brfss %>% 
   group_by(sex) %>% 
-  head(100)
+  head(10)
 ```
 
-
-A common utility of `group_by()` is computation of summary statistics using `summarise()` for groups. For instance, let's compute the average BMI grouped by sex:
-
+A common utility of `group_by()` is computation of summary statistics
+using `summarise()` for groups. For instance, let's compute the average
+BMI grouped by sex:
 
 ```{r}
 #| label: mean-bmi-sex
@@ -1582,9 +1514,8 @@ brfss %>%
   )
 ```
 
-
-If we run the same code without `group_by()`, we get a column containing the average BMI for all respondents:
-
+If we run the same code without `group_by()`, we get a column containing
+the average BMI for all respondents:
 
 ```{r}
 #| label: mean-bmi-overall
@@ -1595,12 +1526,11 @@ brfss %>%
     avg_bmi = mean(bmi, na.rm = TRUE),
     .keep = "used"
   ) %>% 
-  head()
+  head(3)
 ```
 
-
-We can group by more than one variable and compute many summary statistics in one `summarise()` call too. 
-
+We can group by more than one variable and compute many summary
+statistics in one `summarise()` call too.
 
 ```{r}
 #| label: more-grouped-ops
@@ -1616,9 +1546,7 @@ brfss %>%
   )
 ```
 
-
 Let's compute the median of all numeric variables in `brfss` by sex:
-
 
 ```{r}
 #| label: tidy-select-grouped
@@ -1632,15 +1560,14 @@ brfss %>%
   )
 ```
 
-
-Operations other than summmary statistics can be performed on grouped datasets. For instance:
-
+Operations other than summmary statistics can be performed on grouped
+datasets. For instance:
 
 ```{r}
-# get 5 observations with the highest BMI by gender
+# get 2 observations with the highest BMI by gender
 brfss %>% 
   group_by(sex) %>% 
-  slice_max(bmi, n = 5) %>% 
+  slice_max(bmi, n = 2) %>% 
   select(sex, bmi)
 ```
 
@@ -1650,9 +1577,9 @@ brfss %>%
   group_by(sex) %>% 
   filter(bmi < 18.5) %>% 
   slice_min(n = 3, order_by = bmi) %>% 
-  select(sex, bmi)
+  select(sex, bmi) %>% 
+  head()
 ```
-
 
 ```{r}
 brfss %>% 
@@ -1660,18 +1587,20 @@ brfss %>%
   group_by(overweight_obese) %>% 
   filter(drnkwk1 > 1 & drnkwk1 != 999) %>% 
   arrange(desc(drnkwk1)) %>% 
-  select(overweight_obese, drnkwk1)
+  select(overweight_obese, drnkwk1) %>% 
+  head()
 ```
-
 
 ## Recoding missing values
 
+Identifying and dealing with missing values early on is essential to
+avoid unexpected results and/or errors later on during analysis. `R`
+stores missing values as `NA`. Here, we look at some of the simplest
+ways to recode `NA`'s.
 
-Identifying and dealing with missing values early on is essential to avoid unexpected results and/or errors later on during analysis. `R` stores missing values as `NA`. Here, we look at some of the simplest ways to recode `NA`'s.
-
-
-For factor variables, you can use `fct_recode()` to recode levels to missing values (i.e., `NA`). Let's recode the  `7` and `9` which represent refused/don't know/not sure responses. 
-
+For factor variables, you can use `fct_recode()` to recode levels to
+missing values (i.e., `NA`). Let's recode the `7` and `9` which
+represent refused/don't know/not sure responses.
 
 ```{r}
 #| label: first-check-factor-levels
@@ -1682,7 +1611,6 @@ brfss %>%
   map(levels)
 ```
 
-
 ```{r}
 #| label: recode-9-and7-to-NA
 
@@ -1692,15 +1620,15 @@ brfss <- brfss %>%
     across(where(is.factor), ~fct_recode(., NULL = "7", NULL = "9"))
   ) 
 
-# check factor levels
+# re-check factor levels
 brfss %>% 
   select(where(is.factor)) %>% 
   map(levels)
 ```
 
-
-Since we are working with factors, the numbers representing levels are not actual numeric values, thus, we use quotation marks to specify them as doing otherwise would through errors:
-
+Since we are working with factors, the numbers representing levels are
+not actual numeric values, thus, we use quotation marks to specify them
+as doing otherwise would through errors:
 
 ```{r}
 #| label: throw-factor-level-error
@@ -1713,9 +1641,9 @@ brfss %>%
   ) 
 ```
 
-
-For numeric variables, `dplyr::na_if()` converts specified values to `NA`. Let's recode the `999` values that represent `don't know/not sure/refused` responses in `drnkwk1` to `NA`:
-
+For numeric variables, `dplyr::na_if()` converts specified values to
+`NA`. Let's recode the `999` values that represent
+`don't know/not sure/refused` responses in `drnkwk1` to `NA`:
 
 ```{r}
 #| label: summary-drnkwk1
@@ -1724,9 +1652,8 @@ For numeric variables, `dplyr::na_if()` converts specified values to `NA`. Let's
 summary(brfss$drnkwk1)
 ```
 
-
-`dplyr::na_if()` is, however, incompatible with labels so we opt for the similar label-compatible `expss::na_if()`:
-
+`dplyr::na_if()` is, however, incompatible with labels so we opt for the
+similar label-compatible `expss::na_if()`:
 
 ```{r}
 #| label: recode-999-NA-expss
@@ -1741,12 +1668,56 @@ brfss <- brfss %>%
 summary(brfss$drnkwk1)
 ```
 
+[`naniar`](https://cran.r-project.org/web/packages/naniar/index.html)
+offers an awesome alternative functions to recode missing values.
+Details can be found in this
+[vignette](http://naniar.njtierney.com/articles/replace-with-na.html)
 
-[`naniar`](https://cran.r-project.org/web/packages/naniar/index.html) offers an awesome alternative functions to recode missing values. Details can be found in this [vignette](http://naniar.njtierney.com/articles/replace-with-na.html)
+If you wish to continue using labels, you can just re-assign them:
+  
+```{r}
+#| label: re-assign-var-labels
 
+# re-assign variable labels
+brfss <- brfss %>% 
+  apply_labels(
+    age80 = "Age (years)",
+    urbstat   = "Urban/Rural status",
+    racegr3   = "Race",
+    sex       = "Sex",
+    marital   = "Marital status",
+    educag    = "Highest education level completed",
+    bmi_cat   = "BMI classification",
+    overweight_obese = "Overweight/obesity indicator",
+    employ1   = "Employment status",
+    incomg1   = "Total annual income",
+    smoker3   = "Smoking status",
+    rfsmok3   = "Current smoking status",
+    drnkwk1   = "Number of alcoholic beverages consumed per week",
+    rfdrhv7   = "Heavy drinker",
+    frutsu1   = "Total fruits consumed per day",
+    vegesu1   = "Total vegetables consumed per day",
+    frtlt1a   = "Consume fruits one or more times per day",
+    veglt1a   = "Consume vegetables one or more times per day",
+    totinda   = "Leisure time physical activity during past 30 days",
+    genhlth   = "General health rating",
+    rfhype6   = "Hypertension diagnosis",
+    bpmeds    = "Currently taking medicine for high blood pressure",
+    rfchol3   = "High cholesterol diagnosis",
+    cholmed3  = "Currently taking medicine for cholesterol",
+    michd     = "Ever had coronary heart disease or myocardial infarction?",
+    cvdstrk3  = "Ever diagnosed with a stroke?",
+    addepev3  = "Ever told you have a depressive disorder?",
+    chckdny2  = "EVer told you have Kidney disease?",
+    diabete4  = "Ever told you had diabetes?"
+  )
 
-At this stage, we have a fairly polished version of the `brfss` dataset. Let's export it for use in subsequent chapters:
+# check variable labels after re-assignment
+look_for(brfss)
+```
 
+At this stage, we have a fairly polished version of the `brfss` dataset.
+Let's export it for use in subsequent chapters:
 
 ```{r}
 #| label: export-wrangled-BRFSS-dataset
@@ -1755,18 +1726,25 @@ At this stage, we have a fairly polished version of the `brfss` dataset. Let's e
 export(brfss, here("data", "brfss_2021_clean.rds"))
 ```
 
-
 ## Tidy data
 
-
-In a nutshell, *tidy* data has three fundamental properties: (1) each column represents a distinct variable; (2) each row corresponds to a unique observation; and (3) each cell contains only a single value. For details on tidy data, refer to this [article](https://www.jstatsoft.org/article/view/v059i10). In this section, we use the [`tidyr`](https://tidyr.tidyverse.org/) package to tidy data.
-
+In a nutshell, *tidy* data has three fundamental properties: (1) each
+column represents a distinct variable; (2) each row corresponds to a
+unique observation; and (3) each cell contains only a single value. For
+details on tidy data, refer to this
+[article](https://www.jstatsoft.org/article/view/v059i10). In this
+section, we use the [`tidyr`](https://tidyr.tidyverse.org/) package to
+tidy data.
 
 ### Wide to long
 
-
-In this section, we will use the [NCD Risk Factor Collaboration (NCD.RisC)](https://ncdrisc.org/data-downloads-adiposity-urban-rural.html) data on trends in age-standardized average adult body mass index (BMI) for men and women residing in rural and urban areas across all countries from 1985 to 2017. An overview of the data shows it's in a wide, or *untidy* format because variables are dispersed across multiple columns, whereas tidy data mandates that we have one variable per column.
-
+In this section, we will use the [NCD Risk Factor Collaboration
+(NCD.RisC)](https://ncdrisc.org/data-downloads-adiposity-urban-rural.html)
+data on trends in age-standardized average adult body mass index (BMI)
+for men and women residing in rural and urban areas across all countries
+from 1985 to 2017. An overview of the data shows it's in a wide, or
+*untidy* format because variables are dispersed across multiple columns,
+whereas tidy data mandates that we have one variable per column.
 
 ```{r}
 #| label: import-ncdrisc-data
@@ -1778,8 +1756,9 @@ bmi_trends <- import(here("data", "rural_urban_adult_bmi.csv"))
 head(bmi_trends)
 ```
 
-To convert the data into a long `tidy` format in which we have a single column for each of `bmi`, `lower_ci` and `upper_ci`, we use `tidyr::pivot_longer()`:
-
+To convert the data into a long `tidy` format in which we have a single
+column for each of `bmi`, `lower_ci` and `upper_ci`, we use
+`tidyr::pivot_longer()`:
 
 ```{r}
 #| label: bmi-trends-to-long
@@ -1795,10 +1774,9 @@ bmi_trends_long <- bmi_trends %>%
 glimpse(bmi_trends_long) # bmi is now in one column
 ```
 
-
-`pivot_longer()` by default converts the column supplied to `names_to =` to a character type. We can convert it to a factor using the
+`pivot_longer()` by default converts the column supplied to `names_to =`
+to a character type. We can convert it to a factor using the
 `names_transform` parameter:
-
 
 ```{r}
 #| label: names-transform-demo
@@ -1815,10 +1793,9 @@ bmi_trends_long <- bmi_trends %>%
 glimpse(bmi_trends_long)
 ```
 
-
-Looking at the new `residence` variable, the values contain a prefix `mean_bmi_` which isn't either rural or urban residence. To remove this,
+Looking at the new `residence` variable, the values contain a prefix
+`mean_bmi_` which isn't either rural or urban residence. To remove this,
 we use the `names_prefix` argument:
-
 
 ```{r}
 #| label: remove-names-prefix
@@ -1836,9 +1813,9 @@ bmi_trends_long <- bmi_trends %>%
 glimpse(bmi_trends_long)
 ```
 
-
-We still have 4 columns for the 95% confidence intervals. Let's go on to pivot these into a long format with lower bounds in one column and upper bounds in another distinct column:
-
+We still have 4 columns for the 95% confidence intervals. Let's go on to
+pivot these into a long format with lower bounds in one column and upper
+bounds in another distinct column:
 
 ```{r}
 #| label: pivot-lowerci-long
@@ -1868,9 +1845,8 @@ bmi_trends_long <- bmi_trends_long %>%
 glimpse(bmi_trends_long)
 ```
 
-
-We can drop the 2 `confidence_interval` columns, to get a final tidier dataset:
-
+We can drop the 2 `confidence_interval` columns, to get a final tidier
+dataset:
 
 ```{r}
 #| label: drop-ci-cols
@@ -1882,12 +1858,10 @@ bmi_trends_long <- bmi_trends_long %>%
 glimpse(bmi_trends_long)
 ```
 
-
 ### Long to wide
 
-
-We'll use a (contrived) dataset with measurements taken at three intervals to demonstrate how to pivot data from long to wide format.
-
+We'll use a (contrived) dataset with measurements taken at three
+intervals to demonstrate how to pivot data from long to wide format.
 
 ```{r}
 #| label: import-dataset
@@ -1897,7 +1871,6 @@ long_data <- import(here("data", "long_data.csv"))
 
 glimpse(long_data)
 ```
-
 
 ```{r}
 #| label: pivot-longdata-wide
@@ -1912,11 +1885,14 @@ wide_data <- long_data %>%
 glimpse(wide_data)
 ```
 
-
 ### Separating columns
 
-Sometimes, you have a dataset in which two separate pieces of information are contained in one column. You could separate the data into separate columns using `dplyr::separate()`. For this example, we'll digress from health data to a *Country music* (yeah!) dataset that comprises 100 artist names, their birth dates, and one song title (taken from a personal favorite playlist).
-
+Sometimes, you have a dataset in which two separate pieces of
+information are contained in one column. You could separate the data
+into separate columns using `dplyr::separate()`. For this example, we'll
+digress from health data to a *Country music* (yeah!) dataset that
+comprises 100 artist names, their birth dates, and one song title (taken
+from a personal favorite playlist).
 
 ```{r}
 #| label: import-country-artists-data
@@ -1927,9 +1903,8 @@ country_artists <- import(here("data", "country_artists.csv"))
 country_artists
 ```
 
-
-Let's separate the first and last names in the `name` column into separate columns:
-
+Let's separate the first and last names in the `name` column into
+separate columns:
 
 ```{r}
 #| label: separate-name-col
@@ -1944,13 +1919,11 @@ country_sep <- country_artists %>%
 country_sep
 ```
 
-
 ### Uniting columns
 
-
-Conversely, you can combine data from different columns into one. Let's combine the `birth_year`, `birth_month` and `birth_day` columns into one
+Conversely, you can combine data from different columns into one. Let's
+combine the `birth_year`, `birth_month` and `birth_day` columns into one
 using `dplyr::unite()`:
-
 
 ```{r}
 #| label: unite-birthdate-cols
@@ -1966,11 +1939,12 @@ country_united <- country_sep %>%
 country_united
 ```
 
-
-We now have one column, `birth_date` containing all birth day information of each artist. We convert this variable into the appropriate date
-format using `lubridate::ymd()`. This function comes from the [`lubridate`](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)
+We now have one column, `birth_date` containing all birth day
+information of each artist. We convert this variable into the
+appropriate date format using `lubridate::ymd()`. This function comes
+from the
+[`lubridate`](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)
 package which simplifies working with date and time data.
-
 
 ```{r}
 #| label: convert-to-date
@@ -1983,21 +1957,22 @@ country_united %>%
   glimpse()
 ```
 
-
 ## Afterword
 
-We have explored common data wrangling tasks but much more has not been covered. There are innumerable free resources online for learning `R` and data wrangling. For more on `tidyverse`-focused data wrangling, I recommend starting from
-[here](https://r4ds.hadley.nz/data-transform.html) and [here](https://jhudatascience.org/tidyversecourse/wrangle-data.html).
+We have explored common data wrangling tasks but much more has not been
+covered. There are innumerable free resources online for learning `R`
+and data wrangling. For more on `tidyverse`-focused data wrangling, I
+recommend starting from
+[here](https://r4ds.hadley.nz/data-transform.html) and
+[here](https://jhudatascience.org/tidyversecourse/wrangle-data.html).
+
+`dplyr` is a versatile data wrangling package, easy-to-learn due to its user-friendly syntax but it can be slow when processing large datasets. For fast data wrangling, options include 
+[`data.table`](https://rdatatable.gitlab.io/data.table/index.html), [`collapse`](https://sebkrantz.github.io/collapse/index.html), and  [`arrow`](https://arrow.apache.org/docs/r/articles/data_wrangling.html).
+[`dtplyr`](https://dtplyr.tidyverse.org/) and
+[`tidytable`](https://markfairbanks.github.io/tidytable/) harness the speed of `data.table` while while using `dplyr` syntax. Although not optimised for speed, [`datawizard`](https://easystats.github.io/datawizard/) provides alternative intuitive syntax for data wrangling.
 
 
-`dplyr` is a versatile data wrangling package, easy-to-learn due to its user-friendly syntax but it can be slow when processing large datasets. For users who prioritize speed, the [`data.table`](https://rdatatable.gitlab.io/data.table/index.html) package offers optimized performance, although its syntax may be less intuitive than `dplyr`'s. If you're interested in learning `data.table`, you may consider tutorials found [here](https://rdatatable.gitlab.io/data.table/articles/datatable-intro.html), [here](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/), and [here](https://stata2r.github.io/data.table/) helpful. Packages like [`dtplyr`](https://dtplyr.tidyverse.org/) and [`tidytable`](https://markfairbanks.github.io/tidytable/) have been developed to harness the speed of `data.table` while retaining the ease of use of `dplyr.`
-
-
-A personal favourite is the new-ish [`collapse`](https://sebkrantz.github.io/collapse/index.html) package which is incredibly fast (even faster than `data.table` in some cases), has more intuitive code than `data.table` (this is my opinion which seasoned `data.table` users might disagree with) and can work with both `data.table` and `dplyr` seamlessly. `collapse`, `data.table` and `kit` packages make up the [`fastverse`](https://fastverse.github.io/fastverse/index.html)--"a suite of complementary high-performance packages for statistical computing and data manipulation in R."
-
-
-For those familiar with the [`easystats`](https://easystats.github.io/easystats/) ecosystem or want to try something different but still as intuitive as `dplyr`, [`datawizard`](https://easystats.github.io/datawizard/) is an option.
-
-
-I hope this chapter has provided you with the skills to start wrangling data in `R` using `dplyr` and has pointed you to other available package options for faster performance (or different syntax) as well as other resources that may be of use. Happy data wrangling in `R`! 
-
+I hope this chapter has provided you with the skills to start wrangling
+data in `R` using `dplyr` and has pointed you to other available package
+options for faster performance (or different syntax) as well as other
+resources that may be of use. Happy data wrangling in `R`!
